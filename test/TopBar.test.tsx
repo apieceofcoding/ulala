@@ -1,16 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+
+// Mock useLocation for TopBar
+vi.mock('react-router', () => ({
+  useLocation: () => ({ pathname: '/' }),
+}));
+
 import { TopBar } from '../app/components/TopBar';
 
 describe('TopBar', () => {
-  it('renders service name correctly on desktop', () => {
+  it('renders current tab name correctly', () => {
     render(<TopBar />);
-    expect(screen.getByText('울랄라 (ulala)')).toBeInTheDocument();
-  });
-
-  it('renders mobile service name', () => {
-    render(<TopBar />);
-    expect(screen.getByText('울랄라')).toBeInTheDocument();
+    expect(screen.getByText('홈')).toBeInTheDocument();
   });
 
   it('renders default level', () => {

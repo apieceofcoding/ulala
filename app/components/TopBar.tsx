@@ -1,3 +1,6 @@
+import { useLocation } from "react-router";
+import { TAB_INFO } from "../types/navigation";
+
 interface TopBarProps {
   level?: number;
   onSettingsClick?: () => void;
@@ -5,15 +8,16 @@ interface TopBarProps {
 }
 
 export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarProps) {
+  const location = useLocation();
+  const currentTabName = TAB_INFO[location.pathname] || '홈';
   return (
     <div className={`bg-[--color-neutral-bg-1] border-b border-[--color-neutral-fg-3] ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex items-center justify-between h-14 px-2 md:px-[--spacing-m]">
-        {/* 왼쪽: 서비스명 */}
+        {/* 왼쪽: 현재 탭 이름 */}
         <div className="flex-shrink-0">
           <span className="text-sm font-semibold text-[--color-neutral-fg-1] md:text-[length:--font-size-heading-secondary] md:leading-[--line-height-heading-secondary]">
-            <span className="md:hidden">울랄라</span>
-            <span className="hidden md:inline">울랄라 (ulala)</span>
+            {currentTabName}
           </span>
         </div>
 

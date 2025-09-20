@@ -1,6 +1,7 @@
 import type { Route } from "./+types/home";
 import { Welcome } from "../welcome/welcome";
 import { TopBar } from "../components/TopBar";
+import { BottomNav } from "../components/BottomNav";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -14,9 +15,12 @@ export default function Home() {
     <>
       <TopBar
         level={1}
-        onSettingsClick={() => console.log('설정 버튼 클릭')}
+        onSettingsClick={() => console.log('메뉴 버튼 클릭')}
       />
-      <Welcome />
+      <main className="pb-16">
+        <Welcome />
+      </main>
+      <BottomNav />
     </>
   );
 }
