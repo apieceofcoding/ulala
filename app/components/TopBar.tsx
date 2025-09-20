@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import { TAB_INFO } from "../types/navigation";
+import { TAB_INFO } from "@/types/navigation";
 
 interface TopBarProps {
   level?: number;

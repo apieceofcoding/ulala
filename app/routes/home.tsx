@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
-import { TopBar } from "../components/TopBar";
-import { BottomNav } from "../components/BottomNav";
+import { Home as HomeContent } from "@/components/Home";
+import { TopBar } from "@/components/TopBar";
+import { BottomNav } from "@/components/BottomNav";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -18,7 +18,7 @@ export default function Home() {
         onSettingsClick={() => console.log('메뉴 버튼 클릭')}
       />
       <main className="pb-16">
-        <Welcome />
+        <HomeContent />
       </main>
       <BottomNav />
     </>

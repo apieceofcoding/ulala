@@ -1,5 +1,5 @@
-import { TopBar } from "../components/TopBar";
-import { BottomNav } from "../components/BottomNav";
+import { TopBar } from "@/components/TopBar";
+import { BottomNav } from "@/components/BottomNav";
 
 export function meta() {
   return [

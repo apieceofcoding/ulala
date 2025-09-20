@@ -6,7 +6,7 @@ vi.mock('react-router', () => ({
   useLocation: () => ({ pathname: '/' }),
 }));
 
-import { TopBar } from '../app/components/TopBar';
+import { TopBar } from '@/components/TopBar';
 
 describe('TopBar', () => {
   it('renders current tab name correctly', () => {

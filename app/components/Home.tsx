@@ -1,7 +1,7 @@
-import logoDark from "./ulala_dark.png";
-import logoLight from "./ulala.png";
+import logoDark from "@/assets/images/ulala_dark.png";
+import logoLight from "@/assets/images/ulala.png";
 
-export function Welcome() {
+export function Home() {
   return (
     <main className="container min-h-screen flex items-center justify-center">
       <div className="flex-1 flex flex-col items-center max-w-4xl mx-auto">
@@ -24,7 +24,7 @@ export function Welcome() {
           <div className="card-default">
             <h2 className="heading-secondary mb-4 text-center">시작하기</h2>
             <p className="body-text-small text-center mb-6">
-              다음 리소스를 통해 더 많은 정보를 확인하세
+              다음 리소스를 통해 더 많은 정보를 확인하세요
             </p>
 
             <div className="space-y-3">

@@ -10,7 +10,7 @@ vi.mock('react-router', () => ({
   ),
 }));
 
-import { BottomNav } from '../app/components/BottomNav';
+import { BottomNav } from '@/components/BottomNav';
 
 describe('BottomNav', () => {
   it('renders all four navigation tabs', () => {
