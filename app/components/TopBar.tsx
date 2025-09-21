@@ -1,5 +1,6 @@
-import { useLocation } from "react-router";
-import { TAB_INFO } from "@/types/navigation";
+import { Link } from "react-router";
+import logoDark from "@/assets/images/ulala_dark.png";
+import logoLight from "@/assets/images/ulala.png";
 
 interface TopBarProps {
   level?: number;
@@ -8,17 +9,26 @@ interface TopBarProps {
 }
 
 export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarProps) {
-  const location = useLocation();
-  const currentTabName = TAB_INFO[location.pathname] || '홈';
   return (
     <div className={`bg-bg-primary dark:bg-bg-primary-dark border-b border-border-light dark:border-border-dark ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex items-center justify-between h-14 px-2 md:px-4">
-        {/* 왼쪽: 현재 탭 이름 */}
+        {/* 왼쪽: 로고 */}
         <div className="flex-shrink-0">
-          <span className="text-sm font-semibold text-text-primary dark:text-text-primary-dark md:text-xl">
-            {currentTabName}
-          </span>
+          <Link to="/" className="block">
+            <div className="h-10 w-10 cursor-pointer transition-all duration-150 hover:opacity-80">
+              <img
+                src={logoLight}
+                alt="Ulala"
+                className="block h-full w-full object-contain dark:hidden rounded border border-border-light"
+              />
+              <img
+                src={logoDark}
+                alt="Ulala"
+                className="hidden h-full w-full object-contain dark:block rounded border border-border-dark"
+              />
+            </div>
+          </Link>
         </div>
 
         {/* 중앙: 레벨 */}
