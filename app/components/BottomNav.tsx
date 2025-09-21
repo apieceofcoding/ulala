@@ -141,7 +141,7 @@ const tabs: Tab[] = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[--color-neutral-bg-1] border-t border-[--color-neutral-fg-3] z-50 shadow-lg backdrop-blur-sm bg-opacity-95">
+    <nav className="fixed bottom-0 left-0 right-0 bg-bg-primary dark:bg-bg-primary-dark border-t border-border-light dark:border-border-dark z-50 shadow-lg">
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex">
           {tabs.map((tab) => (

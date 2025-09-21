@@ -11,7 +11,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
   const location = useLocation();
   const currentTabName = TAB_INFO[location.pathname] || '홈';
   return (
-    <div className={`bg-[--color-neutral-bg-1] border-b border-[--color-neutral-fg-3] ${className}`}>
+    <div className={`bg-bg-primary dark:bg-bg-primary-dark border-b border-border-light dark:border-border-dark ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex items-center justify-between h-14 px-2 md:px-[--spacing-m]">
         {/* 왼쪽: 현재 탭 이름 */}

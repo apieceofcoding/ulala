@@ -2,6 +2,14 @@
 
 @theme {
   --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", sans-serif;
+
+  /* Border colors */
+  --color-border-light: #e1dfdd;
+  --color-border-dark: #484644;
+
+  /* Background colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-primary-dark: #1f1f1f;
 }
 
 /* Fluent 2 Design System Custom Properties */
@@ -24,6 +32,11 @@
   --color-neutral-fg-1: #323130;
   --color-neutral-fg-2: #605e5c;
   --color-neutral-fg-3: #8a8886;
+
+  /* Soft Border Colors */
+  --color-border-soft: #e1dfdd;
+  --color-border-medium: #d2d0ce;
+  --color-border-subtle: #f3f2f1;
 
   /* Status Colors */
   --color-success: #107c10;
@@ -58,6 +71,11 @@
     --color-neutral-fg-1: #ffffff;
     --color-neutral-fg-2: #d2d0ce;
     --color-neutral-fg-3: #b3b0ad;
+
+    /* Dark Mode Soft Border Colors */
+    --color-border-soft: #484644;
+    --color-border-medium: #323130;
+    --color-border-subtle: #3b3a39;
 
     --color-primary: #4cc2ff;
     --color-primary-hover: #6bcbff;
@@ -150,9 +168,8 @@ body {
 
 /* Card Components */
 .card-default {
-  @apply rounded-lg p-4 transition-shadow duration-150;
+  @apply rounded-lg p-4 transition-shadow duration-150 border border-border-light dark:border-border-dark;
   background-color: var(--color-neutral-bg-1);
-  border: 1px solid var(--color-neutral-fg-3);
   box-shadow: var(--shadow-low);
 }
 
@@ -161,9 +178,8 @@ body {
 }
 
 .card-clickable {
-  @apply rounded-lg p-4 cursor-pointer transition-all duration-150;
+  @apply rounded-lg p-4 cursor-pointer transition-all duration-150 border border-border-light dark:border-border-dark;
   background-color: var(--color-neutral-bg-1);
-  border: 1px solid var(--color-neutral-fg-3);
   box-shadow: var(--shadow-low);
 }
 

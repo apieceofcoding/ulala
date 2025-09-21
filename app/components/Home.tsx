@@ -36,12 +36,12 @@ export function Home() {
             <img
               src={logoLight}
               alt="Ulala Application"
-              className="block w-full dark:hidden rounded-xl shadow-sm border border-[--color-neutral-fg-3] bg-[--color-neutral-bg-1]"
+              className="block w-full dark:hidden rounded-xl shadow-sm border border-border-light bg-bg-primary"
             />
             <img
               src={logoDark}
               alt="Ulala Application"
-              className="hidden w-full dark:block rounded-xl shadow-sm border border-[--color-neutral-fg-3] bg-[--color-neutral-bg-1]"
+              className="hidden w-full dark:block rounded-xl shadow-sm border border-border-dark bg-bg-primary-dark"
             />
           </div>
         </header>

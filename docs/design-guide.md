@@ -49,6 +49,11 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
   --color-neutral-fg-2: #605e5c;
   --color-neutral-fg-3: #8a8886;
 
+  /* 부드러운 경계선 색상 */
+  --color-border-soft: #e1dfdd;
+  --color-border-medium: #d2d0ce;
+  --color-border-subtle: #f3f2f1;
+
   --color-success: #107c10;
   --color-success-bg: #dff6dd;
 
@@ -69,6 +74,11 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
     --color-neutral-fg-1: #ffffff;
     --color-neutral-fg-2: #d2d0ce;
     --color-neutral-fg-3: #b3b0ad;
+
+    /* 다크 모드 부드러운 경계선 색상 */
+    --color-border-soft: #484644;
+    --color-border-medium: #323130;
+    --color-border-subtle: #3b3a39;
 
     --color-primary: #4cc2ff;
     --color-primary-hover: #6bcbff;
@@ -305,7 +315,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
   <input
     type="email"
     placeholder="이메일을 입력하세요"
-    className="border border-[--color-neutral-fg-3] rounded px-[--spacing-input-padding-x] py-[--spacing-input-padding-y] text-base bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1] placeholder-[--color-neutral-fg-3] transition-colors duration-150 focus:border-[--color-primary] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2"
+    className="border border-border-light dark:border-border-dark rounded px-[--spacing-input-padding-x] py-[--spacing-input-padding-y] text-base bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1] placeholder-[--color-neutral-fg-3] transition-colors duration-150 focus:border-[--color-primary] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2"
   />
 </div>
 
@@ -339,7 +349,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 }
 
 .input-base {
-  @apply border border-[--color-neutral-fg-3] rounded px-[--spacing-input-padding-x] py-[--spacing-input-padding-y] text-base bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1];
+  @apply border border-border-light dark:border-border-dark rounded px-[--spacing-input-padding-x] py-[--spacing-input-padding-y] text-base bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1];
   @apply placeholder-[--color-neutral-fg-3] transition-colors duration-150;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
 }
@@ -362,7 +372,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 #### 기본 카드 (Tailwind 클래스)
 ```jsx
 // 기본 카드
-<div className="bg-[--color-neutral-bg-1] rounded-lg border border-[--color-neutral-fg-3] shadow-sm p-[--spacing-card-padding] transition-shadow duration-150 hover:shadow-md">
+<div className="bg-[--color-neutral-bg-1] rounded-lg border border-border-light dark:border-border-dark shadow-sm p-[--spacing-card-padding] transition-shadow duration-150 hover:shadow-md">
   <h3 className="text-[length:--font-size-heading-secondary] leading-[--line-height-heading-secondary] font-semibold text-[--color-neutral-fg-1] mb-2">
     카드 제목
   </h3>
@@ -372,7 +382,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 </div>
 
 // 클릭 가능한 카드
-<div className="bg-[--color-neutral-bg-1] rounded-lg border border-[--color-neutral-fg-3] shadow-sm p-[--spacing-card-padding] transition-all duration-150 hover:shadow-md hover:border-[--color-primary] cursor-pointer">
+<div className="bg-[--color-neutral-bg-1] rounded-lg border border-border-light dark:border-border-dark shadow-sm p-[--spacing-card-padding] transition-all duration-150 hover:shadow-md hover:border-[--color-primary] cursor-pointer">
   <h3 className="text-[length:--font-size-heading-secondary] leading-[--line-height-heading-secondary] font-semibold text-[--color-neutral-fg-1] mb-2">
     클릭 가능한 카드
   </h3>
@@ -386,7 +396,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 ```css
 /* app.css에 추가할 카드 스타일 */
 .card-base {
-  @apply bg-[--color-neutral-bg-1] rounded-lg border border-[--color-neutral-fg-3] shadow-sm p-[--spacing-card-padding];
+  @apply bg-[--color-neutral-bg-1] rounded-lg border border-border-light dark:border-border-dark shadow-sm p-[--spacing-card-padding];
   @apply transition-shadow duration-150;
 }
 
@@ -577,7 +587,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 ### 6. 개발자 가이드
 ```jsx
 // Tailwind v4 클래스 사용 예시
-<div className="bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1] p-[--spacing-m] rounded border border-[--color-neutral-fg-3] transition-all duration-[--duration-fast] hover:shadow-[--shadow-medium]">
+<div className="bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1] p-[--spacing-m] rounded border border-border-light dark:border-border-dark transition-all duration-[--duration-fast] hover:shadow-[--shadow-medium]">
   <button className="bg-[--color-primary] text-white px-[--spacing-button-padding-x] py-[--spacing-button-padding-y] rounded text-sm font-semibold hover:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
     버튼
   </button>
@@ -585,7 +595,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 
 // 컴포넌트 스타일링 (v4 방식)
 .custom-component {
-  @apply bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1] p-[--spacing-m] rounded border border-[--color-neutral-fg-3];
+  @apply bg-[--color-neutral-bg-1] text-[--color-neutral-fg-1] p-[--spacing-m] rounded border border-border-light dark:border-border-dark;
   @apply transition-all duration-[--duration-fast] hover:shadow-[--shadow-medium];
 }
 ```
