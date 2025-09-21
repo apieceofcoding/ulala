@@ -151,13 +151,13 @@ export function BottomNav() {
               className={({ isActive }) =>
                 `flex-1 flex flex-col items-center py-2 min-h-[44px] transition-colors duration-150 ${
                   isActive
-                    ? "text-[--color-primary] font-semibold border-b-2 border-[--color-primary]"
-                    : "text-[--color-neutral-fg-3] font-normal hover:text-[--color-neutral-fg-2]"
+                    ? "text-primary font-semibold border-b-2 border-primary"
+                    : "text-text-tertiary dark:text-text-tertiary-dark font-normal hover:text-text-secondary dark:hover:text-text-secondary-dark"
                 }`
               }
             >
               <tab.icon className="w-5 h-5 mb-1" />
-              <span className="text-[length:--font-size-caption] leading-[--line-height-caption]">
+              <span className="text-xs">
                 {tab.label}
               </span>
             </NavLink>

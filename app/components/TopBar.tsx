@@ -13,17 +13,17 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
   return (
     <div className={`bg-bg-primary dark:bg-bg-primary-dark border-b border-border-light dark:border-border-dark ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
-        <div className="flex items-center justify-between h-14 px-2 md:px-[--spacing-m]">
+        <div className="flex items-center justify-between h-14 px-2 md:px-spacing-m">
         {/* 왼쪽: 현재 탭 이름 */}
         <div className="flex-shrink-0">
-          <span className="text-sm font-semibold text-[--color-neutral-fg-1] md:text-[length:--font-size-heading-secondary] md:leading-[--line-height-heading-secondary]">
+          <span className="text-sm font-semibold text-text-primary dark:text-text-primary-dark md:text-xl">
             {currentTabName}
           </span>
         </div>
 
         {/* 중앙: 레벨 */}
         <div className="flex-1 flex justify-center">
-          <span className="text-[length:--font-size-body] leading-[--line-height-body] font-semibold text-[--color-neutral-fg-1]">
+          <span className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
             Lv.{level}
           </span>
         </div>
@@ -32,7 +32,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
         <div className="flex-shrink-0">
           <button
             onClick={onSettingsClick}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-all duration-150 hover:bg-[--color-neutral-bg-3] active:bg-[--color-neutral-bg-3] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-all duration-150 hover:bg-bg-tertiary dark:hover:bg-bg-tertiary-dark active:bg-bg-tertiary dark:active:bg-bg-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             aria-label="메뉴"
           >
             <svg
@@ -41,7 +41,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
               viewBox="0 0 20 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="text-[--color-neutral-fg-2]"
+              className="text-text-secondary dark:text-text-secondary-dark"
             >
               <path
                 d="M1 2h18M1 8h18M1 14h18"

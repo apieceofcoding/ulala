@@ -29,25 +29,41 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 @import "tailwindcss";
 
 @theme {
+  /* Primary Colors */
   --color-primary: #0078d4;
   --color-primary-hover: #106ebe;
   --color-primary-pressed: #005a9e;
   --color-primary-disabled: #a19f9d;
 
+  /* Secondary Colors */
   --color-secondary: #605e5c;
   --color-secondary-hover: #484644;
   --color-secondary-pressed: #323130;
 
+  /* Accent Colors */
   --color-accent: #8764b8;
   --color-accent-hover: #744da9;
   --color-accent-pressed: #5a2d91;
 
-  --color-neutral-bg-1: #ffffff;
-  --color-neutral-bg-2: #fafafa;
-  --color-neutral-bg-3: #f5f5f5;
-  --color-neutral-fg-1: #323130;
-  --color-neutral-fg-2: #605e5c;
-  --color-neutral-fg-3: #8a8886;
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-primary-dark: #1f1f1f;
+  --color-bg-secondary: #fafafa;
+  --color-bg-secondary-dark: #292929;
+  --color-bg-tertiary: #f5f5f5;
+  --color-bg-tertiary-dark: #323130;
+
+  /* Text Colors */
+  --color-text-primary: #323130;
+  --color-text-primary-dark: #ffffff;
+  --color-text-secondary: #605e5c;
+  --color-text-secondary-dark: #d2d0ce;
+  --color-text-tertiary: #8a8886;
+  --color-text-tertiary-dark: #b3b0ad;
+
+  /* Border Colors */
+  --color-border-light: #e1dfdd;
+  --color-border-dark: #484644;
 
   /* 부드러운 경계선 색상 */
   --color-border-soft: #e1dfdd;
@@ -248,15 +264,15 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 
 ### 버튼 (5가지 상태 필수)
 
-#### Primary 버튼 (Tailwind 클래스)
+#### Primary 버튼 (Tailwind v4 클래스)
 ```jsx
 // 기본 Primary 버튼
-<button className="bg-[--color-primary] text-white px-[--spacing-button-padding-x] py-[--spacing-button-padding-y] rounded text-sm font-semibold border border-transparent transition-all duration-150 hover:bg-[--color-primary-hover] active:bg-[--color-primary-pressed] disabled:bg-[--color-primary-disabled] disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+<button className="bg-primary text-white px-4 py-2 rounded text-sm font-semibold border border-transparent transition-all duration-150 hover:bg-primary-hover active:bg-primary-pressed disabled:bg-primary-disabled disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
   기본 버튼
 </button>
 
 // Secondary 버튼
-<button className="bg-transparent text-[--color-secondary] border border-[--color-secondary] px-[--spacing-button-padding-x] py-[--spacing-button-padding-y] rounded text-sm font-semibold transition-all duration-150 hover:bg-[--color-secondary] hover:text-white focus:outline-none focus:ring-2 focus:ring-[--color-secondary] focus:ring-offset-2">
+<button className="bg-transparent text-secondary border border-secondary px-4 py-2 rounded text-sm font-semibold transition-all duration-150 hover:bg-secondary hover:text-white focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2">
   보조 버튼
 </button>
 
@@ -372,21 +388,21 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 #### 기본 카드 (Tailwind 클래스)
 ```jsx
 // 기본 카드
-<div className="bg-[--color-neutral-bg-1] rounded-lg border border-border-light dark:border-border-dark shadow-sm p-[--spacing-card-padding] transition-shadow duration-150 hover:shadow-md">
-  <h3 className="text-[length:--font-size-heading-secondary] leading-[--line-height-heading-secondary] font-semibold text-[--color-neutral-fg-1] mb-2">
+<div className="bg-bg-primary dark:bg-bg-primary-dark rounded-lg border border-border-light dark:border-border-dark shadow-low p-4 transition-shadow duration-150 hover:shadow-medium">
+  <h3 className="text-xl font-semibold text-text-primary dark:text-text-primary-dark mb-2">
     카드 제목
   </h3>
-  <p className="text-[length:--font-size-body] leading-[--line-height-body] text-[--color-neutral-fg-2]">
+  <p className="text-base text-text-secondary dark:text-text-secondary-dark">
     카드 내용이 들어갑니다.
   </p>
 </div>
 
 // 클릭 가능한 카드
-<div className="bg-[--color-neutral-bg-1] rounded-lg border border-border-light dark:border-border-dark shadow-sm p-[--spacing-card-padding] transition-all duration-150 hover:shadow-md hover:border-[--color-primary] cursor-pointer">
-  <h3 className="text-[length:--font-size-heading-secondary] leading-[--line-height-heading-secondary] font-semibold text-[--color-neutral-fg-1] mb-2">
+<div className="bg-bg-primary dark:bg-bg-primary-dark rounded-lg border border-border-light dark:border-border-dark shadow-low p-4 transition-all duration-150 hover:shadow-medium hover:border-primary cursor-pointer">
+  <h3 className="text-xl font-semibold text-text-primary dark:text-text-primary-dark mb-2">
     클릭 가능한 카드
   </h3>
-  <p className="text-[length:--font-size-body] leading-[--line-height-body] text-[--color-neutral-fg-2]">
+  <p className="text-base text-text-secondary dark:text-text-secondary-dark">
     이 카드는 클릭할 수 있습니다.
   </p>
 </div>
