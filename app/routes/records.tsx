@@ -15,12 +15,12 @@ export default function Records() {
         level={1}
         onSettingsClick={() => console.log('메뉴 버튼 클릭')}
       />
-      <main className="min-h-screen bg-[--color-neutral-bg-2] p-4 pb-16">
+      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-4 pb-16">
         <div className="text-center">
-          <h1 className="text-[length:--font-size-heading-primary] leading-[--line-height-heading-primary] font-semibold text-[--color-neutral-fg-1] mb-4">
+          <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark mb-4">
             기록
           </h1>
-          <p className="text-[length:--font-size-body] leading-[--line-height-body] text-[--color-neutral-fg-2]">
+          <p className="text-base text-text-secondary dark:text-text-secondary-dark">
             게임 기록과 통계 페이지입니다.
           </p>
         </div>

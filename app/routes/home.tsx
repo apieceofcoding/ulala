@@ -1,9 +1,8 @@
-import type { Route } from "./+types/home";
 import { Home as HomeContent } from "@/components/Home";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 
-export function meta(_: Route.MetaArgs) {
+export function meta() {
   return [
     { title: "ulala" },
     { name: "description", content: "Life like game" },

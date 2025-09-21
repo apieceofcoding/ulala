@@ -13,7 +13,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
   return (
     <div className={`bg-bg-primary dark:bg-bg-primary-dark border-b border-border-light dark:border-border-dark ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
-        <div className="flex items-center justify-between h-14 px-2 md:px-spacing-m">
+        <div className="flex items-center justify-between h-14 px-2 md:px-4">
         {/* 왼쪽: 현재 탭 이름 */}
         <div className="flex-shrink-0">
           <span className="text-sm font-semibold text-text-primary dark:text-text-primary-dark md:text-xl">

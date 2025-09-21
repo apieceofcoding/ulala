@@ -131,18 +131,18 @@ body {
 
 /* Container */
 .container {
-  @apply px-spacing-m w-full;
+  @apply px-4 w-full;
 }
 
 @media (min-width: 768px) {
   .container {
-    @apply px-spacing-l;
+    @apply px-6;
   }
 }
 
 @media (min-width: 1024px) {
   .container {
-    @apply mx-auto px-spacing-xl;
+    @apply mx-auto px-8;
     max-width: 1200px;
   }
 }
