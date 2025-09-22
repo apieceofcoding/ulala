@@ -141,7 +141,7 @@ const tabs: Tab[] = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-bg-primary dark:bg-bg-primary-dark border-t border-border-light dark:border-border-dark z-50 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 bg-bg-primary dark:bg-bg-primary-dark z-50 shadow-high">
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex">
           {tabs.map((tab) => (
@@ -151,7 +151,7 @@ export function BottomNav() {
               className={({ isActive }) =>
                 `flex-1 flex flex-col items-center py-2 min-h-[44px] transition-colors duration-150 ${
                   isActive
-                    ? "text-primary font-semibold border-b-2 border-primary"
+                    ? "text-primary font-semibold bg-bg-secondary dark:bg-bg-secondary-dark"
                     : "text-text-tertiary dark:text-text-tertiary-dark font-normal hover:text-text-secondary dark:hover:text-text-secondary-dark"
                 }`
               }

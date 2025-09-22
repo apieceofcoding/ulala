@@ -10,7 +10,7 @@ interface TopBarProps {
 
 export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarProps) {
   return (
-    <div className={`bg-bg-primary dark:bg-bg-primary-dark border-b border-border-light dark:border-border-dark ${className}`}>
+    <div className={`bg-bg-primary dark:bg-bg-primary-dark shadow-low ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex items-center justify-between h-14 px-2 md:px-4">
         {/* 왼쪽: 로고 */}
@@ -20,12 +20,12 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
               <img
                 src={logoLight}
                 alt="Ulala"
-                className="block h-full w-full object-contain dark:hidden rounded border border-border-light"
+                className="block h-full w-full object-contain dark:hidden rounded"
               />
               <img
                 src={logoDark}
                 alt="Ulala"
-                className="hidden h-full w-full object-contain dark:block rounded border border-border-dark"
+                className="hidden h-full w-full object-contain dark:block rounded"
               />
             </div>
           </Link>

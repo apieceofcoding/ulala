@@ -111,22 +111,22 @@ body {
 }
 
 .btn-secondary {
-  @apply px-4 py-2 rounded text-sm font-semibold border transition-all duration-150 cursor-pointer inline-flex items-center justify-center;
+  @apply px-4 py-2 rounded text-sm font-semibold border border-transparent transition-all duration-150 cursor-pointer inline-flex items-center justify-center;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-  @apply bg-transparent text-secondary border-secondary hover:bg-secondary hover:text-white focus:ring-secondary;
+  @apply bg-bg-secondary dark:bg-bg-secondary-dark text-secondary hover:bg-secondary hover:text-white focus:ring-secondary;
 }
 
 /* Card Components */
 .card-default {
-  @apply rounded-lg p-4 transition-shadow duration-150 border border-border-light dark:border-border-dark;
+  @apply rounded-lg p-4 transition-shadow duration-150;
   @apply bg-bg-primary dark:bg-bg-primary-dark;
   @apply shadow-low hover:shadow-medium;
 }
 
 .card-clickable {
-  @apply rounded-lg p-4 cursor-pointer transition-all duration-150 border border-border-light dark:border-border-dark;
+  @apply rounded-lg p-4 cursor-pointer transition-all duration-150;
   @apply bg-bg-primary dark:bg-bg-primary-dark;
-  @apply shadow-low hover:shadow-medium hover:border-primary;
+  @apply shadow-low hover:shadow-medium hover:bg-bg-secondary dark:hover:bg-bg-secondary-dark;
 }
 
 /* Container */

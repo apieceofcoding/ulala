@@ -210,7 +210,7 @@ export default function Stories() {
                     value={newTodoTitle}
                     onChange={(e) => setNewTodoTitle(e.target.value)}
                     placeholder="예: 책 읽기, 운동하기"
-                    className="w-full px-4 py-2 rounded border border-border-light dark:border-border-dark bg-bg-primary dark:bg-bg-primary-dark text-text-primary dark:text-text-primary-dark"
+                    className="w-full px-4 py-2 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark"
                   />
                 </div>
                 <div>
@@ -219,7 +219,7 @@ export default function Stories() {
                     <select
                       value={newTodoCategory}
                       onChange={(e) => setNewTodoCategory(e.target.value)}
-                      className="w-full px-4 py-2 pr-10 rounded border border-border-light dark:border-border-dark bg-bg-primary dark:bg-bg-primary-dark text-text-primary dark:text-text-primary-dark appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                      className="w-full px-4 py-2 pr-10 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="건강">건강</option>
                       <option value="운동">운동</option>

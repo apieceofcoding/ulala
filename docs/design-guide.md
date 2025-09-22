@@ -19,6 +19,11 @@ Microsoft Fluent 2 디자인 시스템을 기반으로 하되, Ulala 서비스�
 - 핵심 행동(CTA)을 가장 눈에 띄는 곳에 배치
 - 2-3단계의 단순한 텍스트 위계
 
+### 4. 자연스러운 구분 (Natural Separation)
+- 테두리(border) 사용을 최소화하고 배경색 차이로 경계 구분
+- 카드, 버튼, 입력창 등은 배경색과 그림자로 자연스럽게 구분
+- 더 부드럽고 현대적인 시각적 경험 제공
+
 ## 색상 시스템 (Color System)
 
 ### Tailwind 커스텀 테마 설정
@@ -271,8 +276,8 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
   기본 버튼
 </button>
 
-// Secondary 버튼
-<button className="bg-transparent text-secondary border border-secondary px-4 py-2 rounded text-sm font-semibold transition-all duration-150 hover:bg-secondary hover:text-white focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2">
+// Secondary 버튼 (테두리 없음)
+<button className="bg-bg-secondary dark:bg-bg-secondary-dark text-secondary px-4 py-2 rounded text-sm font-semibold transition-all duration-150 hover:bg-secondary hover:text-white focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2">
   보조 버튼
 </button>
 
@@ -299,7 +304,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 }
 
 .btn-secondary {
-  @apply btn-base bg-transparent text-[--color-secondary] border-[--color-secondary];
+  @apply btn-base bg-[--color-bg-secondary] dark:bg-[--color-bg-secondary-dark] text-[--color-secondary] border-transparent;
   @apply hover:bg-[--color-secondary] hover:text-white focus:ring-[--color-secondary];
 }
 
@@ -387,8 +392,8 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 
 #### 기본 카드 (Tailwind 클래스)
 ```jsx
-// 기본 카드
-<div className="bg-bg-primary dark:bg-bg-primary-dark rounded-lg border border-border-light dark:border-border-dark shadow-low p-4 transition-shadow duration-150 hover:shadow-medium">
+// 기본 카드 (테두리 없음)
+<div className="bg-bg-primary dark:bg-bg-primary-dark rounded-lg shadow-low p-4 transition-shadow duration-150 hover:shadow-medium">
   <h3 className="text-xl font-semibold text-text-primary dark:text-text-primary-dark mb-2">
     카드 제목
   </h3>
@@ -397,8 +402,8 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
   </p>
 </div>
 
-// 클릭 가능한 카드
-<div className="bg-bg-primary dark:bg-bg-primary-dark rounded-lg border border-border-light dark:border-border-dark shadow-low p-4 transition-all duration-150 hover:shadow-medium hover:border-primary cursor-pointer">
+// 클릭 가능한 카드 (테두리 없음)
+<div className="bg-bg-primary dark:bg-bg-primary-dark rounded-lg shadow-low p-4 transition-all duration-150 hover:shadow-medium hover:bg-bg-secondary dark:hover:bg-bg-secondary-dark cursor-pointer">
   <h3 className="text-xl font-semibold text-text-primary dark:text-text-primary-dark mb-2">
     클릭 가능한 카드
   </h3>
@@ -412,7 +417,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 ```css
 /* app.css에 추가할 카드 스타일 */
 .card-base {
-  @apply bg-[--color-neutral-bg-1] rounded-lg border border-border-light dark:border-border-dark shadow-sm p-[--spacing-card-padding];
+  @apply bg-[--color-neutral-bg-1] rounded-lg shadow-sm p-[--spacing-card-padding];
   @apply transition-shadow duration-150;
 }
 
@@ -421,7 +426,7 @@ Fluent 2 디자인 시스템의 색상을 Tailwind CSS 테마로 적용합니다
 }
 
 .card-clickable {
-  @apply card-base hover:shadow-md hover:border-[--color-primary] cursor-pointer;
+  @apply card-base hover:shadow-md hover:bg-[--color-bg-secondary] dark:hover:bg-[--color-bg-secondary-dark] cursor-pointer;
   @apply transition-all duration-150;
 }
 ```
