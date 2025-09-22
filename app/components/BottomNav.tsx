@@ -34,6 +34,34 @@ function HomeIcon({ className }: { className?: string }) {
   );
 }
 
+function BookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        d="M2.5 3.75V15.625C2.5 16.2463 3.0037 16.75 3.625 16.75H16.875"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.625 16.75C4.2463 16.75 4.75 16.2463 4.75 15.625V2.5H15.625C16.2463 2.5 16.75 3.0037 16.75 3.625V13.75"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ChartIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -134,7 +162,8 @@ function UserIcon({ className }: { className?: string }) {
 
 const tabs: Tab[] = [
   { path: "/", label: "홈", icon: HomeIcon },
-  { path: "/stories", label: "스토리", icon: ChartIcon },
+  { path: "/stories", label: "스토리", icon: BookIcon },
+  { path: "/records", label: "기록", icon: ChartIcon },
   { path: "/rewards", label: "보상", icon: GiftIcon },
   { path: "/profile", label: "내정보", icon: UserIcon },
 ];
