@@ -4,8 +4,8 @@ import { BottomNav } from "@/components/BottomNav";
 
 export function meta() {
   return [
-    { title: "기록 - ulala" },
-    { name: "description", content: "게임 기록과 통계를 확인하세요" },
+    { title: "스토리 - ulala" },
+    { name: "description", content: "게임 스토리와 통계를 확인하세요" },
   ];
 }
 
@@ -30,7 +30,7 @@ interface Todo {
   completed: boolean;
 }
 
-export default function Records() {
+export default function Stories() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isLoadingRecommendations, setIsLoadingRecommendations] =

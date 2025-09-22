@@ -17,7 +17,7 @@ describe('BottomNav', () => {
     render(<BottomNav />);
 
     expect(screen.getByText('홈')).toBeInTheDocument();
-    expect(screen.getByText('기록')).toBeInTheDocument();
+    expect(screen.getByText('스토리')).toBeInTheDocument();
     expect(screen.getByText('보상')).toBeInTheDocument();
     expect(screen.getByText('내정보')).toBeInTheDocument();
   });
@@ -26,12 +26,12 @@ describe('BottomNav', () => {
     render(<BottomNav />);
 
     const homeLink = screen.getByRole('link', { name: /홈/ });
-    const recordsLink = screen.getByRole('link', { name: /기록/ });
+    const storiesLink = screen.getByRole('link', { name: /스토리/ });
     const rewardsLink = screen.getByRole('link', { name: /보상/ });
     const profileLink = screen.getByRole('link', { name: /내정보/ });
 
     expect(homeLink).toHaveAttribute('href', '/');
-    expect(recordsLink).toHaveAttribute('href', '/records');
+    expect(storiesLink).toHaveAttribute('href', '/stories');
     expect(rewardsLink).toHaveAttribute('href', '/rewards');
     expect(profileLink).toHaveAttribute('href', '/profile');
   });

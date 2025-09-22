@@ -134,7 +134,7 @@ function UserIcon({ className }: { className?: string }) {
 
 const tabs: Tab[] = [
   { path: "/", label: "홈", icon: HomeIcon },
-  { path: "/records", label: "기록", icon: ChartIcon },
+  { path: "/stories", label: "스토리", icon: ChartIcon },
   { path: "/rewards", label: "보상", icon: GiftIcon },
   { path: "/profile", label: "내정보", icon: UserIcon },
 ];

@@ -47,10 +47,10 @@ export function Home() {
           <div className="card-default">
             <h2 className="heading-secondary mb-4 text-center">시작하기</h2>
             <NavLink
-              to="/records"
+              to="/stories"
               className="btn-primary w-full block text-center"
             >
-              기록 시작하기
+              스토리 시작하기
             </NavLink>
           </div>
 
