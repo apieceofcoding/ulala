@@ -77,11 +77,63 @@ export default function Stories() {
     }
   };
 
+  const generateReward = (todo: Todo) => {
+    // 카테고리별 보상 설정
+    const categoryRewards: Record<string, { icon: string; points: number }> = {
+      '건강': { icon: '💧', points: 10 },
+      '운동': { icon: '🚶‍♂️', points: 15 },
+      '학습': { icon: '📚', points: 20 },
+      '자기계발': { icon: '✨', points: 12 },
+      '디지털 디톡스': { icon: '📱', points: 18 },
+      '기타': { icon: '🎯', points: 8 }
+    };
+
+    const rewardInfo = categoryRewards[todo.category] || categoryRewards['기타'];
+
+    const newReward = {
+      id: Date.now(),
+      title: `${todo.category} 달성`,
+      description: `${todo.title}을(를) 완료했습니다`,
+      earnedAt: new Date().toISOString(),
+      type: 'points' as const,
+      value: rewardInfo.points,
+      icon: rewardInfo.icon,
+      isNew: true
+    };
+
+    // 로컬 스토리지에서 기존 보상 가져오기
+    const savedRewards = localStorage.getItem('ulala-rewards');
+    const rewards = savedRewards ? JSON.parse(savedRewards) : [];
+
+    // 새 보상 추가
+    const updatedRewards = [newReward, ...rewards];
+    localStorage.setItem('ulala-rewards', JSON.stringify(updatedRewards));
+
+    // 새 보상 알림 표시 (3초 후 자동 제거)
+    setTimeout(() => {
+      const currentRewards = JSON.parse(localStorage.getItem('ulala-rewards') || '[]');
+      const updatedRewards = currentRewards.map((reward: any) =>
+        reward.id === newReward.id ? { ...reward, isNew: false } : reward
+      );
+      localStorage.setItem('ulala-rewards', JSON.stringify(updatedRewards));
+    }, 3000);
+  };
+
   const handleToggleTodo = (id: number) => {
     setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+      todos.map((todo) => {
+        if (todo.id === id) {
+          const updatedTodo = { ...todo, completed: !todo.completed };
+
+          // 할 일을 완료했을 때 보상 생성
+          if (!todo.completed && updatedTodo.completed) {
+            generateReward(todo);
+          }
+
+          return updatedTodo;
+        }
+        return todo;
+      })
     );
   };
 
@@ -92,7 +144,7 @@ export default function Stories() {
   return (
     <>
       <TopBar level={1} onSettingsClick={() => console.log("메뉴 버튼 클릭")} />
-      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark pb-16">
+      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 할 일 목록이 없을 때 */}
           {todos.length === 0 &&

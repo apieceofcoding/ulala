@@ -15,7 +15,7 @@ export default function Profile() {
         level={1}
         onSettingsClick={() => console.log('메뉴 버튼 클릭')}
       />
-      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-4 pb-16">
+      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark mb-4">
             내정보
