@@ -1,88 +1,46 @@
-# Welcome to React Router!
+# Ulala
 
-A modern, production-ready template for building full-stack React applications using React Router.
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+A gamified task management app that turns your daily to-dos into an engaging story-based experience.
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- 📖 **Story Mode**: AI-powered task recommendations based on your life goals
+- 🎯 **Smart Tasks**: Create and complete tasks with category-based rewards
+- 📊 **Activity Tracking**: Visual calendar showing your story completion history
+- 🎁 **Reward System**: Earn points and badges for completing tasks
+- 🌙 **Dark Mode**: Full light/dark theme support with localStorage persistence
+- 📱 **Mobile First**: Responsive design optimized for mobile devices
 
-## Getting Started
-
-### Installation
-
-Install the dependencies:
+## Quick Start
 
 ```bash
+# Install dependencies
 npm install
-```
 
-### Development
-
-Start the development server with HMR:
-
-```bash
+# Run development server
 npm run dev
-```
 
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
+# Build for production (Deploy the `build/client/` directory)
 npm run build
 ```
 
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## Project Structure
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+app/
+├── routes/          # Page routes
+├── components/      # Reusable components
+├── assets/          # Images and static files
+└── app.css          # Global styles with Tailwind v4
+
+docs/               # Design and feature documentation
+feature/            # Feature specifications
 ```
 
-## Styling
+## Tech Stack
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
-# ulala
+- React Router v7 (CSR mode)
+- TypeScript
+- Tailwind CSS v4
+- Microsoft Fluent 2 Design System
+- Local Storage for data persistence
