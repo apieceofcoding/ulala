@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", sans-serif;
 
@@ -19,43 +21,31 @@
   --color-accent-hover: #744da9;
   --color-accent-pressed: #5a2d91;
 
-  /* Background Colors */
+  /* Background Colors - Light Mode */
   --color-bg-primary: #ffffff;
-  --color-bg-primary-dark: #1f1f1f;
   --color-bg-secondary: #fafafa;
-  --color-bg-secondary-dark: #292929;
   --color-bg-tertiary: #f5f5f5;
-  --color-bg-tertiary-dark: #323130;
 
-  /* Text Colors */
+  /* Text Colors - Light Mode */
   --color-text-primary: #323130;
-  --color-text-primary-dark: #ffffff;
   --color-text-secondary: #605e5c;
-  --color-text-secondary-dark: #d2d0ce;
   --color-text-tertiary: #8a8886;
-  --color-text-tertiary-dark: #b3b0ad;
 
   /* Border Colors */
   --color-border-light: #e1dfdd;
   --color-border-dark: #484644;
   --color-border-medium: #d2d0ce;
-  --color-border-medium-dark: #323130;
   --color-border-subtle: #f3f2f1;
-  --color-border-subtle-dark: #3b3a39;
 
   /* Status Colors */
   --color-success: #107c10;
   --color-success-bg: #dff6dd;
-  --color-success-bg-dark: #132d13;
   --color-error: #d83b01;
   --color-error-bg: #fed9cc;
-  --color-error-bg-dark: #2d1b18;
   --color-warning: #ff8c00;
   --color-warning-bg: #fff4ce;
-  --color-warning-bg-dark: #2d2318;
   --color-info: #0078d4;
   --color-info-bg: #deecf9;
-  --color-info-bg-dark: #1b2631;
 
   /* Spacing System */
   --spacing-xs: 0.25rem;
@@ -71,10 +61,33 @@
   --shadow-high: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+.dark {
+  /* Background Colors for Dark Mode */
+  --color-bg-primary: #1f1f1f;
+  --color-bg-secondary: #292929;
+  --color-bg-tertiary: #323130;
+
+  /* Text Colors for Dark Mode */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d2d0ce;
+  --color-text-tertiary: #b3b0ad;
+
+  /* Border Colors for Dark Mode */
+  --color-border-light: #484644;
+  --color-border-medium: #323130;
+  --color-border-subtle: #3b3a39;
+
+  /* Status Colors for Dark Mode */
+  --color-success-bg: #132d13;
+  --color-error-bg: #2d1b18;
+  --color-warning-bg: #2d2318;
+  --color-info-bg: #1b2631;
+}
+
 
 html,
 body {
-  @apply bg-bg-primary text-text-primary font-sans dark:bg-bg-primary-dark dark:text-text-primary-dark;
+  @apply bg-bg-primary text-text-primary font-sans;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
@@ -83,23 +96,23 @@ body {
 
 /* Typography Classes */
 .heading-primary {
-  @apply text-2xl leading-tight font-semibold text-text-primary dark:text-text-primary-dark;
+  @apply text-2xl leading-tight font-semibold text-text-primary;
 }
 
 .heading-secondary {
-  @apply text-xl leading-normal font-semibold text-text-primary dark:text-text-primary-dark;
+  @apply text-xl leading-normal font-semibold text-text-primary;
 }
 
 .body-text {
-  @apply text-base leading-normal font-normal text-text-secondary dark:text-text-secondary-dark;
+  @apply text-base leading-normal font-normal text-text-secondary;
 }
 
 .body-text-small {
-  @apply text-sm leading-normal font-normal text-text-secondary dark:text-text-secondary-dark;
+  @apply text-sm leading-normal font-normal text-text-secondary;
 }
 
 .caption-text {
-  @apply text-xs leading-normal font-normal text-text-tertiary dark:text-text-tertiary-dark;
+  @apply text-xs leading-normal font-normal text-text-tertiary;
 }
 
 /* Button Components */
@@ -113,20 +126,20 @@ body {
 .btn-secondary {
   @apply px-4 py-2 rounded text-sm font-semibold border border-transparent transition-all duration-150 cursor-pointer inline-flex items-center justify-center;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-  @apply bg-bg-secondary dark:bg-bg-secondary-dark text-secondary hover:bg-secondary hover:text-white focus:ring-secondary;
+  @apply bg-bg-secondary text-secondary hover:bg-secondary hover:text-white focus:ring-secondary;
 }
 
 /* Card Components */
 .card-default {
   @apply rounded-lg p-4 transition-shadow duration-150;
-  @apply bg-bg-primary dark:bg-bg-primary-dark;
+  @apply bg-bg-primary;
   @apply shadow-low hover:shadow-medium;
 }
 
 .card-clickable {
   @apply rounded-lg p-4 cursor-pointer transition-all duration-150;
-  @apply bg-bg-primary dark:bg-bg-primary-dark;
-  @apply shadow-low hover:shadow-medium hover:bg-bg-secondary dark:hover:bg-bg-secondary-dark;
+  @apply bg-bg-primary;
+  @apply shadow-low hover:shadow-medium hover:bg-bg-secondary;
 }
 
 /* Container */

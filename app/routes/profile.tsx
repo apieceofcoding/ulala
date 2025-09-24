@@ -68,7 +68,6 @@ export default function Profile() {
     setDarkMode(newValue);
     localStorage.setItem('ulala-dark-mode', JSON.stringify(newValue));
 
-    // 실제 다크 모드 적용은 추후 구현
     if (newValue) {
       document.documentElement.classList.add('dark');
     } else {

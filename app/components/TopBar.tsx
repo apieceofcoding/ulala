@@ -10,7 +10,7 @@ interface TopBarProps {
 
 export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarProps) {
   return (
-    <div className={`bg-bg-primary dark:bg-bg-primary-dark shadow-low ${className}`}>
+    <div className={`bg-bg-primary shadow-low ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex items-center justify-between h-14 px-2 md:px-4">
         {/* 왼쪽: 로고 */}
@@ -33,7 +33,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
 
         {/* 중앙: 레벨 */}
         <div className="flex-1 flex justify-center">
-          <span className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
+          <span className="text-base font-semibold text-text-primary">
             Lv.{level}
           </span>
         </div>
@@ -42,7 +42,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
         <div className="flex-shrink-0">
           <button
             onClick={onSettingsClick}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-all duration-150 hover:bg-bg-tertiary dark:hover:bg-bg-tertiary-dark active:bg-bg-tertiary dark:active:bg-bg-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-all duration-150 hover:bg-bg-tertiary active:bg-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             aria-label="메뉴"
           >
             <svg
@@ -51,7 +51,7 @@ export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarPro
               viewBox="0 0 20 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="text-text-secondary dark:text-text-secondary-dark"
+              className="text-text-secondary"
             >
               <path
                 d="M1 2h18M1 8h18M1 14h18"
