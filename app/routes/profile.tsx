@@ -18,10 +18,18 @@ export default function Profile() {
   const [completionRate, setCompletionRate] = useState(0);
 
   useEffect(() => {
-    // 다크 모드 설정 불러오기
+    // 다크 모드 설정 불러오기 및 적용
     const savedDarkMode = localStorage.getItem('ulala-dark-mode');
     if (savedDarkMode) {
-      setDarkMode(JSON.parse(savedDarkMode));
+      const isDark = JSON.parse(savedDarkMode);
+      setDarkMode(isDark);
+
+      // 페이지 로드 시 다크 모드 적용
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
 
     // 알림 설정 불러오기
@@ -108,14 +116,14 @@ export default function Profile() {
               </div>
 
               {/* 경험치 바 */}
-              <div className="w-full max-w-xs">
+              <div className="w-full">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <span className="caption-text whitespace-nowrap">다음 레벨까지</span>
                   <span className="caption-text font-semibold whitespace-nowrap">{currentLevelTodos}/10</span>
                 </div>
                 <div className="w-full h-2 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary transition-all duration-300"
+                    className="h-2 bg-primary transition-all duration-300 rounded-full"
                     style={{ width: `${experiencePercent}%` }}
                   ></div>
                 </div>
