@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -143,7 +144,7 @@ export default function Stories() {
 
   return (
     <>
-      <TopBar level={1} onSettingsClick={() => console.log("메뉴 버튼 클릭")} />
+      <TopBar level={1} onSettingsClick={() => logger.log("메뉴 버튼 클릭")} />
       <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 할 일 목록이 없을 때 */}

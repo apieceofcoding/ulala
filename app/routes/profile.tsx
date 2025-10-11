@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
-import kakaoLoginImage from "@/assets/images/kakao_login_medium_narrow.png";
+import kakaoLoginImage from "@/assets/images/kakao_login_large_narrow.png";
+import { API_ENDPOINTS } from "@/api/endpoints";
+import { apiClient } from "@/api/api";
+import type { Member } from "@/types/member";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -11,14 +14,9 @@ export function meta() {
   ];
 }
 
-interface KakaoUser {
-  id: number;
-}
-
 export default function Profile() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [user, setUser] = useState<KakaoUser | null>(null);
+  const [member, setMember] = useState<Member | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [totalTodos, setTotalTodos] = useState(0);
@@ -27,56 +25,55 @@ export default function Profile() {
   const [completionRate, setCompletionRate] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // 카카오 로그인 처리
+  // 페이지 로드 시 accessToken 발급
   useEffect(() => {
-    const code = searchParams.get("code");
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-    const handleKakaoCallback = async () => {
-      if (code) {
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}/api/auth/kakao/callback`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ code }),
-            }
-          );
-
-          const data = await response.json();
-
-          if (data.user) {
-            setUser(data.user);
-            // 쿼리 파라미터 제거
-            navigate("/profile", { replace: true });
-          }
-        } catch (error) {
-          console.error("카카오 로그인 오류:", error);
-        }
-      }
-    };
-
-    const checkLoginStatus = async () => {
+    const getAccessToken = async () => {
       try {
-        const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          credentials: "include",
+        const response = await apiClient.post(API_ENDPOINTS.AUTH.TOKEN, {
+          credentials: "include", // refreshToken이 담긴 Cookie 자동 전송
         });
 
-        const userData = await userResponse.json();
-        setUser(userData.user);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.accessToken) {
+            setAccessToken(data.accessToken);
+          }
+        }
       } catch (error) {
-        console.error("로그인 상태 확인 오류:", error);
+        logger.error("AccessToken 발급 오류:", error);
       }
     };
 
-    if (code) {
-      handleKakaoCallback();
-    } else {
-      checkLoginStatus();
-    }
-  }, [searchParams, navigate]);
+    getAccessToken();
+  }, []);
+
+  // accessToken이 있으면 회원 정보 조회
+  useEffect(() => {
+    const fetchMemberInfo = async () => {
+      if (!accessToken) {
+        return;
+      }
+
+      try {
+        const memberResponse = await apiClient.get(API_ENDPOINTS.MEMBERS.ME, {
+          token: accessToken,
+        });
+
+        if (memberResponse.ok) {
+          const memberData = await memberResponse.json();
+          setMember(memberData);
+        } else {
+          // 토큰이 유효하지 않으면 초기화
+          setAccessToken(null);
+          setMember(null);
+        }
+      } catch (error) {
+        logger.error("회원 정보 조회 오류:", error);
+      }
+    };
+
+    fetchMemberInfo();
+  }, [accessToken]);
 
   useEffect(() => {
     // 다크 모드 설정 불러오기 및 적용
@@ -156,31 +153,25 @@ export default function Profile() {
   };
 
   const handleKakaoLogin = () => {
-    if (window.Kakao && window.Kakao.isInitialized()) {
-      window.Kakao.Auth.authorize({
-        redirectUri: import.meta.env.VITE_KAKAO_REDIRECT_URI,
-      });
-    } else {
-      alert("카카오 SDK를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.");
-    }
+    window.location.href = apiClient.buildUrl(API_ENDPOINTS.OAUTH.KAKAO);
   };
 
   const handleKakaoLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
+      const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, {
+        credentials: "include", // refreshToken Cookie 자동 전송
       });
 
       if (response.ok) {
-        window.location.reload();
+        // 메모리의 accessToken과 회원 정보 초기화
+        setAccessToken(null);
+        setMember(null);
       } else {
         alert("로그아웃에 실패했습니다.");
       }
     } catch (error) {
-      console.error("로그아웃 오류:", error);
+      logger.error("로그아웃 오류:", error);
       alert("로그아웃에 실패했습니다.");
     } finally {
       setIsLoggingOut(false);
@@ -196,12 +187,12 @@ export default function Profile() {
     <>
       <TopBar
         level={level}
-        onSettingsClick={() => console.log("메뉴 버튼 클릭")}
+        onSettingsClick={() => logger.log("메뉴 버튼 클릭")}
       />
       <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 로그인 전 상태 */}
-          {!user && (
+          {!member && (
             <div className="card-default text-center space-y-4">
               <div className="flex flex-col items-center">
                 <div className="w-20 h-20 rounded-full bg-bg-tertiary dark:bg-bg-tertiary-dark flex items-center justify-center text-3xl mb-4">
@@ -213,7 +204,7 @@ export default function Profile() {
                 <button
                   onClick={handleKakaoLogin}
                   className="transition-all duration-150 hover:opacity-90 active:opacity-80"
-                  style={{ width: '200px', maxWidth: '100%' }}
+                  style={{ width: "200px", maxWidth: "100%" }}
                 >
                   <img
                     src={kakaoLoginImage}
@@ -226,23 +217,35 @@ export default function Profile() {
           )}
 
           {/* 로그인 후 상태 - 프로필 헤더 */}
-          {user && (
+          {member && (
             <div className="card-default text-center space-y-4">
               <div className="flex flex-col items-center">
-                <div className="w-20 h-20 rounded-full bg-bg-tertiary dark:bg-bg-tertiary-dark flex items-center justify-center text-3xl mb-4">
-                  👤
-                </div>
-                <h1 className="heading-primary mb-1">닉네임</h1>
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: "#10b981" }}
-                  >
-                    🟢 카카오 연동됨
-                  </span>
-                </div>
+                {/* 프로필 이미지 */}
+                {member.imageUrl ? (
+                  <img
+                    src={member.imageUrl}
+                    alt={member.displayName || "프로필"}
+                    className="w-20 h-20 rounded-full object-cover mb-4"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-bg-tertiary dark:bg-bg-tertiary-dark flex items-center justify-center text-3xl mb-4">
+                    👤
+                  </div>
+                )}
+
+                {/* 닉네임 */}
+                <h1 className="heading-primary mb-1">
+                  {member.displayName || "회원"}
+                </h1>
+
+                {/* 회원 ID */}
+                <p className="caption-text text-text-tertiary dark:text-text-tertiary-dark mb-4">
+                  @{member.memberId}
+                </p>
+
+                {/* 레벨 정보 */}
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="body-text">레벨 {level}</span>
+                  <span className="body-text">레벨 {member.level}</span>
                   <span className="caption-text">• {totalTodos}개 완료</span>
                 </div>
 
@@ -263,15 +266,6 @@ export default function Profile() {
                     ></div>
                   </div>
                 </div>
-
-                {/* 로그아웃 버튼 */}
-                <button
-                  onClick={handleKakaoLogout}
-                  disabled={isLoggingOut}
-                  className="btn-secondary w-full max-w-xs mt-4"
-                >
-                  {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
-                </button>
               </div>
             </div>
           )}
@@ -405,6 +399,19 @@ export default function Profile() {
               </div>
             </div>
           </div>
+
+          {/* 로그아웃 */}
+          {member && (
+            <div className="text-center pb-4">
+              <button
+                onClick={handleKakaoLogout}
+                disabled={isLoggingOut}
+                className="text-text-tertiary dark:text-text-tertiary-dark text-sm underline hover:text-text-secondary dark:hover:text-text-secondary-dark transition-colors duration-150 disabled:opacity-50"
+              >
+                {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
+              </button>
+            </div>
+          )}
         </div>
       </main>
       <BottomNav />

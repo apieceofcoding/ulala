@@ -135,6 +135,118 @@
 - **절대 경로 사용**: `@/` 별칭을 사용하여 `app/` 디렉토리의 절대 경로로 import
 - **상대 경로 금지**: `./` 또는 `../`를 사용한 상대 경로 import 금지
 
+## 📝 로깅(Logging) 규칙
+
+### 기본 원칙
+
+**모든 로그는 환경별 로거 유틸리티(`app/utils/logger.ts`)를 사용하며, 직접 `console.*` 메서드를 사용하지 않습니다.**
+
+### 이유
+
+- **프로덕션 환경 보호**: 개발 중 디버깅 로그가 프로덕션에 노출되지 않도록 방지
+- **보안**: 민감한 정보가 프로덕션 콘솔에 노출되는 것을 방지
+- **일관성**: 중앙화된 로깅 시스템으로 향후 에러 모니터링 서비스(Sentry 등) 연동 용이
+- **성능**: 불필요한 로그 출력으로 인한 프로덕션 성능 저하 방지
+
+### 사용 방법
+
+#### ❌ 잘못된 방법 (금지)
+```typescript
+// console 직접 사용
+console.log("사용자 로그인 성공");
+console.error("API 요청 실패", error);
+console.warn("토큰이 만료되었습니다");
+```
+
+#### ✅ 올바른 방법
+```typescript
+// logger 유틸리티 사용
+import { logger } from "@/utils/logger";
+
+logger.log("사용자 로그인 성공");
+logger.error("API 요청 실패", error);
+logger.warn("토큰이 만료되었습니다");
+```
+
+### Logger API
+
+`app/utils/logger.ts`는 다음 메서드를 제공합니다:
+
+- `logger.error(...)`: 에러 로그 (개발 환경에서만 출력, 향후 Sentry 등 연동)
+- `logger.warn(...)`: 경고 로그 (개발 환경에서만 출력)
+- `logger.info(...)`: 정보 로그 (개발 환경에서만 출력)
+- `logger.debug(...)`: 디버그 로그 (개발 환경에서만 출력)
+- `logger.log(...)`: 일반 로그 (개발 환경에서만 출력)
+
+### 동작 방식
+
+- **개발 환경** (`import.meta.env.DEV === true`): 모든 로그가 콘솔에 출력됨
+- **프로덕션 환경** (`import.meta.env.DEV === false`): 로그가 출력되지 않음
+
+### 필수 사항
+
+- 모든 로그 출력 시 `logger` 유틸리티를 사용
+- `console.log`, `console.error`, `console.warn` 등 직접 사용 금지
+- 새로운 코드 작성 시 logger 사용 필수
+- 기존 코드 수정 시 console 호출을 logger로 변경
+
+## 📡 API 엔드포인트 관리 규칙
+
+### 기본 원칙
+
+**모든 API 엔드포인트는 중앙에서 관리하며, 컴포넌트에서 직접 URL을 작성하지 않습니다.**
+
+### 파일 구조
+
+```
+app/
+└── api/
+    ├── api.ts           # API 설정 및 클라이언트 함수
+    └── endpoints.ts     # API 엔드포인트 상수 정의
+```
+
+### 구현 규칙
+
+1. **API 설정 및 클라이언트** (`app/api/api.ts`)
+   - 환경 변수(`VITE_API_BASE_URL`)는 이 파일에서만 읽어옴
+   - BASE_URL과 기타 API 관련 설정 관리
+   - fetch API를 래핑한 클라이언트 함수 제공 (GET, POST, PUT, DELETE)
+   - 인증 토큰 자동 주입 옵션
+   - 표준화된 에러 핸들링 및 타임아웃 처리
+
+2. **엔드포인트 상수 정의** (`app/api/endpoints.ts`)
+   - 모든 API 엔드포인트 경로를 상수로 정의
+   - 카테고리별로 객체로 구조화 (예: AUTH, MEMBERS, TODOS 등)
+   - TypeScript의 `as const`를 사용하여 타입 안전성 보장
+
+### 사용 예시
+
+#### ❌ 잘못된 방법 (금지)
+```typescript
+// 컴포넌트에서 직접 URL 작성
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+  method: "POST",
+});
+```
+
+#### ✅ 올바른 방법
+```typescript
+// 1. api 폴더에서 import
+import { API_ENDPOINTS } from "@/api/endpoints";
+import { apiClient } from "@/api/api";
+
+// 2. 타입 안전한 API 호출
+const response = await apiClient.post(API_ENDPOINTS.AUTH.TOKEN);
+```
+
+### 필수 사항
+
+- 새로운 API 엔드포인트 추가 시 반드시 `app/api/endpoints.ts`에 먼저 정의
+- 컴포넌트에서 `import.meta.env.VITE_API_BASE_URL`을 직접 사용 금지
+- 문자열 리터럴로 API URL 작성 금지
+- API 호출 시 `apiClient` 유틸리티 함수 사용 권장
+
 ## 🔧 커맨드 참고
 
 ### 자주 사용하는 명령어

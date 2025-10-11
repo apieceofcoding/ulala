@@ -1,6 +1,7 @@
 import { Home as HomeContent } from "@/components/Home";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -14,7 +15,7 @@ export default function Home() {
     <>
       <TopBar
         level={1}
-        onSettingsClick={() => console.log('메뉴 버튼 클릭')}
+        onSettingsClick={() => logger.log('메뉴 버튼 클릭')}
       />
       <main className="pb-16">
         <HomeContent />
