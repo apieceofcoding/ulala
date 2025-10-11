@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import kakaoLoginImage from "@/assets/images/kakao_login_large_narrow.png";
@@ -15,6 +16,7 @@ export function meta() {
 }
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [member, setMember] = useState<Member | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -178,6 +180,16 @@ export default function Profile() {
     }
   };
 
+  const handleEditProfile = () => {
+    if (!member) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    navigate("/profile/edit", {
+      state: { accessToken, member },
+    });
+  };
+
   // 레벨 계산 (10개당 1레벨)
   const level = Math.floor(totalTodos / 10) + 1;
   const currentLevelTodos = totalTodos % 10;
@@ -219,6 +231,14 @@ export default function Profile() {
           {/* 로그인 후 상태 - 프로필 헤더 */}
           {member && (
             <div className="card-default text-center space-y-4">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={handleEditProfile}
+                  className="text-sm text-text-secondary dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary transition-colors duration-150"
+                >
+                  수정
+                </button>
+              </div>
               <div className="flex flex-col items-center">
                 {/* 프로필 이미지 */}
                 {member.imageUrl ? (

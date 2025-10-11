@@ -169,6 +169,22 @@ async function put(
 }
 
 /**
+ * PATCH 요청
+ * @param endpoint - API 엔드포인트 경로
+ * @param options - 요청 옵션
+ * @returns Response 객체
+ */
+async function patch(
+  endpoint: string,
+  options: ApiRequestOptions = {},
+): Promise<Response> {
+  return request(endpoint, {
+    ...options,
+    method: 'PATCH',
+  });
+}
+
+/**
  * DELETE 요청
  * @param endpoint - API 엔드포인트 경로
  * @param options - 요청 옵션
@@ -192,6 +208,7 @@ export const apiClient = {
   get,
   post,
   put,
+  patch,
   delete: deleteRequest,
   buildUrl,
 };

@@ -29,6 +29,10 @@ export const OAUTH_ENDPOINTS = {
 export const MEMBER_ENDPOINTS = {
   /** 현재 로그인한 사용자 정보 조회 */
   ME: '/api/members/me',
+  /** 프로필 정보 업데이트 */
+  UPDATE_PROFILE: '/api/members/me',
+  /** 회원 ID 중복 확인 */
+  CHECK_MEMBER_ID: '/api/members',
 } as const;
 
 /**
