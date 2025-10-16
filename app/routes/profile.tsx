@@ -202,7 +202,7 @@ export default function Profile() {
                   </div>
                 )}
 
-                {/* 닉네임 */}
+                {/* 이름 */}
                 <h1 className="heading-primary mb-1">
                   {member.displayName || "회원"}
                 </h1>

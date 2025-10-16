@@ -50,7 +50,6 @@ export default function ProfileEdit() {
   // 페이지 로드 시 accessToken 발급 (없을 때만)
   useEffect(() => {
     const getAccessToken = async () => {
-      // 이미 accessToken이 있으면 발급하지 않음
       if (accessToken) {
         return;
       }
@@ -81,7 +80,6 @@ export default function ProfileEdit() {
   // accessToken이 있고 member 정보가 없으면 회원 정보 조회
   useEffect(() => {
     const fetchMemberInfo = async () => {
-      // accessToken이 없거나 이미 member 정보가 있으면 조회하지 않음
       if (!accessToken || member) {
         return;
       }
@@ -330,13 +328,16 @@ export default function ProfileEdit() {
             >
               사용자이름
             </label>
-            <div className="relative">
+            <div className="relative flex items-center">
+              <span className="absolute left-4 text-text-primary dark:text-text-primary-dark font-medium pointer-events-none">
+                @
+              </span>
               <input
                 type="text"
                 id="username"
                 value={username}
                 onChange={handleUsernameChange}
-                className={`w-full px-4 py-2 pr-12 rounded-lg bg-bg-tertiary dark:bg-bg-tertiary-dark text-text-primary dark:text-text-primary-dark border-2 transition-colors ${
+                className={`w-full pl-8 pr-12 py-2 rounded-lg bg-bg-tertiary dark:bg-bg-tertiary-dark text-text-primary dark:text-text-primary-dark border-2 transition-colors ${
                   usernameStatus === "invalid" || usernameStatus === "taken"
                     ? "border-error"
                     : "border-transparent focus:border-primary"
