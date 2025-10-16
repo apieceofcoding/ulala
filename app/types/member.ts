@@ -4,7 +4,7 @@
 
 export interface Member {
   id: number;
-  memberId: string;
+  username: string;
   displayName: string | null;
   imageUrl: string | null;
   level: string;

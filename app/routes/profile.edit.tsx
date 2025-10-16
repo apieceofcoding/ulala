@@ -12,7 +12,7 @@ export function meta() {
   ];
 }
 
-type MemberIdStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
@@ -30,22 +30,22 @@ export default function ProfileEdit() {
   const [accessToken, setAccessToken] = useState<string | null>(
     stateFromProfile?.accessToken || null
   );
-  const [memberId, setMemberId] = useState(
-    stateFromProfile?.member?.memberId || ""
+  const [username, setUsername] = useState(
+    stateFromProfile?.member?.username || ""
   );
   const [displayName, setDisplayName] = useState(
     stateFromProfile?.member?.displayName || ""
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [memberIdStatus, setMemberIdStatus] = useState<MemberIdStatus>(
-    stateFromProfile?.member?.memberId ? "available" : "idle"
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>(
+    stateFromProfile?.member?.username ? "available" : "idle"
   );
-  const [memberIdMessage, setMemberIdMessage] = useState<string | null>(null);
+  const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState({
     displayName: "",
   });
 
-  const memberIdCheckTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const usernameCheckTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 페이지 로드 시 accessToken 발급 (없을 때만)
   useEffect(() => {
@@ -94,12 +94,12 @@ export default function ProfileEdit() {
         if (memberResponse.ok) {
           const memberData = await memberResponse.json();
           setMember(memberData);
-          setMemberId(memberData.memberId || "");
+          setUsername(memberData.username || "");
           setDisplayName(memberData.displayName || "");
-          // 기존 memberId가 있으면 중복 인증된 상태로 표시
-          if (memberData.memberId) {
-            setMemberIdStatus("available");
-            setMemberIdMessage("현재 사용 중인 ID입니다.");
+          // 기존 username가 있으면 중복 인증된 상태로 표시
+          if (memberData.username) {
+            setUsernameStatus("available");
+            setUsernameMessage("현재 사용 중인 사용자이름입니다.");
           }
         } else {
           // 회원 정보 조회 실패 시 프로필 페이지로 이동
@@ -117,24 +117,24 @@ export default function ProfileEdit() {
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {
-      if (memberIdCheckTimerRef.current) {
-        clearTimeout(memberIdCheckTimerRef.current);
+      if (usernameCheckTimerRef.current) {
+        clearTimeout(usernameCheckTimerRef.current);
       }
     };
   }, []);
 
-  // 회원 ID 유효성 검증
-  const validateMemberId = (id: string): boolean => {
+  // 사용자이름 유효성 검증
+  const validateUsername = (id: string): boolean => {
     if (id.length < 6 || id.length > 20) {
-      setMemberIdStatus("invalid");
-      setMemberIdMessage("회원 ID는 6자 이상 20자 이하여야 합니다.");
+      setUsernameStatus("invalid");
+      setUsernameMessage("사용자이름는 6자 이상 20자 이하여야 합니다.");
       return false;
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(id)) {
-      setMemberIdStatus("invalid");
-      setMemberIdMessage(
-        "회원 ID는 영문 대소문자, 숫자, _ 만 사용할 수 있습니다."
+      setUsernameStatus("invalid");
+      setUsernameMessage(
+        "사용자이름는 영문 대소문자, 숫자, _ 만 사용할 수 있습니다."
       );
       return false;
     }
@@ -142,64 +142,64 @@ export default function ProfileEdit() {
     return true;
   };
 
-  // 회원 ID 중복 확인
-  const checkMemberIdDuplicate = async (id: string): Promise<void> => {
-    if (!validateMemberId(id)) {
+  // 사용자이름 중복 확인
+  const checkUsernameDuplicate = async (id: string): Promise<void> => {
+    if (!validateUsername(id)) {
       return;
     }
 
-    if (id === member?.memberId) {
-      setMemberIdStatus("available");
-      setMemberIdMessage("현재 사용 중인 ID입니다.");
+    if (id === member?.username) {
+      setUsernameStatus("available");
+      setUsernameMessage("현재 사용 중인 사용자이름입니다.");
       return;
     }
 
-    setMemberIdStatus("checking");
-    setMemberIdMessage("");
+    setUsernameStatus("checking");
+    setUsernameMessage("");
 
     try {
       const response = await apiClient.get(
-        `${API_ENDPOINTS.MEMBERS.CHECK_MEMBER_ID}/${encodeURIComponent(id)}/check`,
+        `${API_ENDPOINTS.MEMBERS.CHECK_USERNAME}/${encodeURIComponent(id)}/check`,
         { token: accessToken || "" }
       );
 
       if (response.ok) {
         const data = await response.json();
         if (data.exists) {
-          setMemberIdStatus("taken");
-          setMemberIdMessage("이미 사용 중인 ID입니다.");
+          setUsernameStatus("taken");
+          setUsernameMessage("이미 사용 중인 사용자이름입니다.");
         } else {
-          setMemberIdStatus("available");
-          setMemberIdMessage("사용 가능한 ID입니다.");
+          setUsernameStatus("available");
+          setUsernameMessage("사용 가능한 ID입니다.");
         }
       } else {
-        setMemberIdStatus("invalid");
-        setMemberIdMessage("중복 확인에 실패했습니다.");
+        setUsernameStatus("invalid");
+        setUsernameMessage("중복 확인에 실패했습니다.");
       }
     } catch (error) {
-      logger.error("회원 ID 중복 확인 오류:", error);
-      setMemberIdStatus("invalid");
-      setMemberIdMessage("중복 확인에 실패했습니다.");
+      logger.error("사용자이름 중복 확인 오류:", error);
+      setUsernameStatus("invalid");
+      setUsernameMessage("중복 확인에 실패했습니다.");
     }
   };
 
-  // 회원 ID 입력 핸들러 (Debounce 적용)
-  const handleMemberIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 사용자이름 입력 핸들러 (Debounce 적용)
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newId = e.target.value;
-    setMemberId(newId);
-    setMemberIdStatus("idle");
-    setMemberIdMessage("");
+    setUsername(newId);
+    setUsernameStatus("idle");
+    setUsernameMessage("");
 
-    if (memberIdCheckTimerRef.current) {
-      clearTimeout(memberIdCheckTimerRef.current);
+    if (usernameCheckTimerRef.current) {
+      clearTimeout(usernameCheckTimerRef.current);
     }
 
     if (!newId) {
       return;
     }
 
-    memberIdCheckTimerRef.current = setTimeout(() => {
-      checkMemberIdDuplicate(newId);
+    usernameCheckTimerRef.current = setTimeout(() => {
+      checkUsernameDuplicate(newId);
     }, 1000);
   };
 
@@ -225,16 +225,16 @@ export default function ProfileEdit() {
 
   // 프로필 저장
   const handleSave = async () => {
-    if (!validateMemberId(memberId) || !validateDisplayName(displayName)) {
+    if (!validateUsername(username) || !validateDisplayName(displayName)) {
       return;
     }
 
-    if (memberIdStatus === "taken" || memberIdStatus === "invalid") {
+    if (usernameStatus === "taken" || usernameStatus === "invalid") {
       return;
     }
 
-    if (memberId !== member?.memberId && memberIdStatus !== "available") {
-      alert("회원 ID 중복 확인이 필요합니다.");
+    if (username !== member?.username && usernameStatus !== "available") {
+      alert("사용자이름 중복 확인이 필요합니다.");
       return;
     }
 
@@ -245,7 +245,7 @@ export default function ProfileEdit() {
         {
           token: accessToken || "",
           body: JSON.stringify({
-            memberId,
+            username,
             displayName,
           }),
           headers: {
@@ -279,8 +279,8 @@ export default function ProfileEdit() {
   };
 
   // 상태별 아이콘
-  const getMemberIdStatusIcon = () => {
-    switch (memberIdStatus) {
+  const getUsernameStatusIcon = () => {
+    switch (usernameStatus) {
       case "checking":
         return (
           <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
@@ -322,38 +322,38 @@ export default function ProfileEdit() {
 
         {/* 프로필 수정 폼 */}
         <div className="card-default space-y-6">
-          {/* 회원 ID */}
+          {/* 사용자이름 */}
           <div>
             <label
-              htmlFor="memberId"
+              htmlFor="username"
               className="block body-text font-semibold mb-2"
             >
-              회원 ID
+              사용자이름
             </label>
             <div className="relative">
               <input
                 type="text"
-                id="memberId"
-                value={memberId}
-                onChange={handleMemberIdChange}
+                id="username"
+                value={username}
+                onChange={handleUsernameChange}
                 className={`w-full px-4 py-2 pr-12 rounded-lg bg-bg-tertiary dark:bg-bg-tertiary-dark text-text-primary dark:text-text-primary-dark border-2 transition-colors ${
-                  memberIdStatus === "invalid" || memberIdStatus === "taken"
+                  usernameStatus === "invalid" || usernameStatus === "taken"
                     ? "border-error"
                     : "border-transparent focus:border-primary"
                 }`}
-                placeholder="회원 ID를 입력하세요"
+                placeholder="사용자이름를 입력하세요"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {getMemberIdStatusIcon()}
+                {getUsernameStatusIcon()}
               </div>
             </div>
-            {memberIdMessage && (
+            {usernameMessage && (
               <p
                 className={`caption-text mt-1 ${
-                  memberIdStatus === "available" ? "text-success" : "text-error"
+                  usernameStatus === "available" ? "text-success" : "text-error"
                 }`}
               >
-                {memberIdMessage}
+                {usernameMessage}
               </p>
             )}
           </div>
@@ -401,9 +401,9 @@ export default function ProfileEdit() {
               onClick={handleSave}
               disabled={
                 isSaving ||
-                !memberId ||
-                memberIdStatus === "taken" ||
-                memberIdStatus === "invalid" ||
+                !username ||
+                usernameStatus === "taken" ||
+                usernameStatus === "invalid" ||
                 !!errors.displayName
               }
               className="flex-1 px-4 py-3 rounded-lg bg-primary text-white font-semibold hover:opacity-90 active:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"

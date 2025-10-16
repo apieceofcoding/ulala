@@ -234,7 +234,7 @@ GET https://ulala.p-e.kr/oauth2/authorization/kakao
 // Response
 {
   id: number,
-  memberId: string,
+  username: string,
   displayName: string | null,
   imageUrl: string | null,
   level: string
@@ -255,12 +255,14 @@ GET https://ulala.p-e.kr/oauth2/authorization/kakao
 ### 실제 구현된 파일 목록
 
 #### 수정된 파일
+
 - `app/root.tsx` - Kakao SDK 스크립트 제거 (51-80행)
 - `app/routes/profile.tsx` - 로그인 로직을 REST API 방식으로 변경 (158-161행)
 - `.env.development` - 카카오 환경변수 제거, API URL만 유지
 - `.env.production` - 카카오 환경변수 제거, API URL 수정
 
 #### 삭제된 파일
+
 - `app/types/kakao.d.ts` - SDK 타입 정의 파일 완전 제거
 
 ### 주요 변경사항
@@ -271,6 +273,7 @@ GET https://ulala.p-e.kr/oauth2/authorization/kakao
    - 약 5KB의 외부 의존성 제거
 
 2. **로그인 로직 단순화**
+
    ```tsx
    // Before: SDK 방식
    window.Kakao.Auth.authorize({
@@ -289,12 +292,14 @@ GET https://ulala.p-e.kr/oauth2/authorization/kakao
 ### 테스트 결과
 
 #### 코드 품질 검증
+
 - ✅ **ESLint**: 통과 (에러 0개, 경고 12개 - 기존 경고)
 - ✅ **TypeScript**: 타입 체크 통과
 - ✅ **개발 서버**: 정상 실행 확인 (포트 5174)
 - ✅ **빌드**: 컴파일 성공
 
 #### 기능 검증
+
 - ✅ SDK 스크립트 로드 안됨 확인
 - ✅ 로그인 버튼 클릭 시 서버 URL로 리다이렉트
 - ✅ 기존 UI/UX 완전 유지

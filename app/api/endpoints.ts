@@ -10,9 +10,9 @@
  */
 export const AUTH_ENDPOINTS = {
   /** AccessToken 발급 */
-  TOKEN: '/api/auth/token',
+  TOKEN: "/api/auth/token",
   /** 로그아웃 */
-  LOGOUT: '/api/auth/logout',
+  LOGOUT: "/api/auth/logout",
 } as const;
 
 /**
@@ -20,7 +20,7 @@ export const AUTH_ENDPOINTS = {
  */
 export const OAUTH_ENDPOINTS = {
   /** 카카오 로그인 */
-  KAKAO: '/oauth2/authorization/kakao',
+  KAKAO: "/oauth2/authorization/kakao",
 } as const;
 
 /**
@@ -28,11 +28,11 @@ export const OAUTH_ENDPOINTS = {
  */
 export const MEMBER_ENDPOINTS = {
   /** 현재 로그인한 사용자 정보 조회 */
-  ME: '/api/members/me',
+  ME: "/api/members/me",
   /** 프로필 정보 업데이트 */
-  UPDATE_PROFILE: '/api/members/me',
-  /** 회원 ID 중복 확인 */
-  CHECK_MEMBER_ID: '/api/members',
+  UPDATE_PROFILE: "/api/members/me",
+  /** 사용자이름 중복 확인 */
+  CHECK_USERNAME: "/api/members",
 } as const;
 
 /**
@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
  * API 엔드포인트 타입
  * 타입 안전성을 위한 유틸리티 타입
  */
-export type AuthEndpoint = typeof AUTH_ENDPOINTS[keyof typeof AUTH_ENDPOINTS];
-export type OAuthEndpoint = typeof OAUTH_ENDPOINTS[keyof typeof OAUTH_ENDPOINTS];
-export type MemberEndpoint = typeof MEMBER_ENDPOINTS[keyof typeof MEMBER_ENDPOINTS];
+export type AuthEndpoint = (typeof AUTH_ENDPOINTS)[keyof typeof AUTH_ENDPOINTS];
+export type OAuthEndpoint =
+  (typeof OAUTH_ENDPOINTS)[keyof typeof OAUTH_ENDPOINTS];
+export type MemberEndpoint =
+  (typeof MEMBER_ENDPOINTS)[keyof typeof MEMBER_ENDPOINTS];

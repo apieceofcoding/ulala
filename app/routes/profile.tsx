@@ -207,9 +207,9 @@ export default function Profile() {
                   {member.displayName || "회원"}
                 </h1>
 
-                {/* 회원 ID */}
+                {/* 사용자이름 */}
                 <p className="caption-text text-text-tertiary dark:text-text-tertiary-dark mb-4">
-                  @{member.memberId}
+                  @{member.username}
                 </p>
 
                 {/* 레벨 정보 */}

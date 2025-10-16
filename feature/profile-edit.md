@@ -2,19 +2,21 @@
 
 **상태**: 📝 작성 완료 (승인 대기)
 **관련 파일**:
+
 - app/routes/profile.tsx (프로필 페이지)
 - app/routes/profile.edit.tsx (프로필 수정 페이지 - 신규)
-**API 엔드포인트**: /api/members/me (업데이트 필요)
+  **API 엔드포인트**: /api/members/me (업데이트 필요)
 
 ## 개요
 
-사용자가 자신의 프로필 정보를 직접 수정할 수 있는 기능입니다. 회원 ID(memberId)와 이름(displayName)을 변경할 수 있습니다.
+사용자가 자신의 프로필 정보를 직접 수정할 수 있는 기능입니다. 사용자이름(username)와 이름(displayName)을 변경할 수 있습니다.
 
 프로필 수정은 **별도의 페이지(/profile/edit)**에서 진행되며, 수정 완료 후 프로필 페이지로 다시 돌아옵니다.
 
 ### 목적과 필요성
+
 - 사용자가 자신의 프로필을 개인화하고 관리할 수 있는 기능 제공
-- 회원 ID 변경을 통한 고유 식별자 관리
+- 사용자이름 변경을 통한 고유 식별자 관리
 - 닉네임 변경을 통한 개성 표현
 - 별도 페이지로 수정 기능을 분리하여 명확한 사용자 플로우 제공
 
@@ -28,17 +30,17 @@
    - 로그인된 사용자만 접근 가능
    - 로그인하지 않은 사용자 접근 시 프로필 페이지로 리다이렉트
 
-2. **회원 ID(memberId) 변경 기능**
-   - 현재 memberId를 입력창에 표시
-   - 텍스트 입력으로 새로운 회원 ID 입력
+2. **사용자이름(username) 변경 기능**
+   - 현재 username를 입력창에 표시
+   - 텍스트 입력으로 새로운 사용자이름 입력
    - 유효성 검증:
      - 6자 이상 20자 이하
-     - 영문 대소문자, 숫자, 언더스코어(_)만 허용
+     - 영문 대소문자, 숫자, 언더스코어(\_)만 허용
      - 중복 확인 필수 (서버 측 검증)
      - 필수 입력 (비워둘 수 없음)
    - **실시간 중복 확인 (Debounce)**:
      - 입력 후 1초 대기 후 자동으로 중복 확인 API 호출
-     - API: `/api/members/{memberId}/check`
+     - API: `/api/members/{username}/check`
      - 디바운스를 통해 불필요한 API 호출 방지
    - **시각적 피드백**:
      - 중복 확인 중: 로딩 스피너 아이콘 표시
@@ -142,17 +144,17 @@
      - 제목: "프로필 수정"
    - 하단에 BottomNav 유지 (선택사항)
 
-3. **회원 ID 입력 필드 상태별 표시**:
+3. **사용자이름 입력 필드 상태별 표시**:
    - 입력 중: 기본 상태
    - 검증 중 (1초 대기 후): 로딩 스피너 표시
    - 사용 가능: ✓ 초록색 체크 + "사용 가능한 ID입니다"
    - 중복됨: ✗ 빨간색 X + "이미 사용 중인 ID입니다"
    - 유효하지 않음: ⚠ 빨간색 경고 + 에러 메시지
 
-### 2단계: 회원 ID 입력 필드 UI 구현
+### 2단계: 사용자이름 입력 필드 UI 구현
 
-1. **회원 ID 입력 필드 구성 요소**
-   - 라벨: "회원 ID"
+1. **사용자이름 입력 필드 구성 요소**
+   - 라벨: "사용자이름"
    - 입력 필드: text 타입, placeholder 표시
    - 상태별 아이콘: 입력 필드 우측에 절대 위치로 배치
      - checking: 로딩 스피너 (애니메이션 회전)
@@ -162,7 +164,7 @@
    - 상태 메시지: 입력 필드 하단에 표시
      - available: 초록색 텍스트
      - taken/invalid: 빨간색 텍스트
-   - 가이드 텍스트: "6-20자, 영문 대소문자, 숫자, _ 사용 가능"
+   - 가이드 텍스트: "6-20자, 영문 대소문자, 숫자, \_ 사용 가능"
 
 2. **입력 필드 스타일 처리**
    - 기본 상태: `input-default` 클래스
@@ -190,12 +192,12 @@
 ### 4단계: 폼 상태 관리
 
 1. **상태 변수 (프로필 수정 페이지)**
-   - `memberId`: 회원 ID 입력값
+   - `username`: 사용자이름 입력값
    - `displayName`: 이름 입력값
    - `isSaving`: 저장 중 상태
-   - `isCheckingMemberId`: 회원 ID 중복 확인 중 상태
-   - `memberIdStatus`: 회원 ID 검증 상태 ('idle' | 'checking' | 'available' | 'taken' | 'invalid')
-   - `memberIdMessage`: 회원 ID 상태 메시지
+   - `isCheckingUsername`: 사용자이름 중복 확인 중 상태
+   - `usernameStatus`: 사용자이름 검증 상태 ('idle' | 'checking' | 'available' | 'taken' | 'invalid')
+   - `usernameMessage`: 사용자이름 상태 메시지
    - `errors`: 각 필드별 에러 메시지 객체
 
 2. **유효성 검증 및 중복 확인 로직**
@@ -203,19 +205,19 @@
      - useRef로 타이머 참조 보관
      - 컴포넌트 언마운트 시 타이머 정리
 
-   - **회원 ID 유효성 검증 함수**:
+   - **사용자이름 유효성 검증 함수**:
      - 6-20자 길이 확인
-     - 영문 대소문자, 숫자, _ 만 허용하는지 정규식으로 확인
+     - 영문 대소문자, 숫자, \_ 만 허용하는지 정규식으로 확인
      - 유효하지 않으면 에러 상태 및 메시지 설정
 
-   - **회원 ID 중복 확인 함수** (비동기):
+   - **사용자이름 중복 확인 함수** (비동기):
      - 기본 유효성 검증 먼저 수행
      - 기존 ID와 동일하면 검증 생략
-     - API 호출: `/api/members/{memberId}/check`
+     - API 호출: `/api/members/{username}/check`
      - 응답에 따라 상태 업데이트 (available, taken, invalid)
      - 에러 시 logger로 로그 기록 및 에러 상태 설정
 
-   - **회원 ID 입력 핸들러** (Debounce 적용):
+   - **사용자이름 입력 핸들러** (Debounce 적용):
      - 입력값 변경 시 상태 초기화 (idle)
      - 기존 타이머가 있으면 취소
      - 빈 값이면 검증 생략
@@ -231,22 +233,22 @@
    - `app/api/endpoints.ts` 파일에 다음 엔드포인트 추가:
      - `ME`: `/api/members/me` (현재 사용자 정보 조회)
      - `UPDATE_PROFILE`: `/api/members/me` (PATCH - 프로필 정보 업데이트)
-     - `CHECK_MEMBER_ID`: `/api/members/{memberId}/check` (GET - memberId 중복 확인)
+     - `CHECK_USERNAME`: `/api/members/{username}/check` (GET - username 중복 확인)
 
    **API 응답 형식**:
-   - 중복 확인 API: `GET /api/members/{memberId}/check`
+   - 중복 확인 API: `GET /api/members/{username}/check`
      - 성공 응답: `{ "exists": false }` (사용 가능) 또는 `{ "exists": true }` (중복)
 
 2. **프로필 업데이트 로직**
    - **저장 전 검증**:
-     - memberId와 displayName 유효성 검증
-     - memberId가 기존과 다르면 중복 확인 API 호출
+     - username와 displayName 유효성 검증
+     - username가 기존과 다르면 중복 확인 API 호출
      - 검증 실패 시 저장 중단
 
    - **저장 프로세스**:
      1. 저장 중 상태 활성화 (`isSaving: true`)
      2. 프로필 정보 업데이트 API 호출 (PATCH `/api/members/me`):
-        - JSON 형식으로 memberId, displayName 전송
+        - JSON 형식으로 username, displayName 전송
         - accessToken을 헤더에 포함
         - Content-Type: application/json 설정
      3. 성공 시:
@@ -285,32 +287,35 @@
 ## 필요한 파일 및 컴포넌트
 
 ### 수정할 파일
+
 1. **app/routes/profile.tsx**
    - "수정" 버튼 추가
    - `/profile/edit`로 이동하는 navigate 로직
 
 ### 새로 생성할 파일
+
 1. **app/routes/profile.edit.tsx** (필수)
    - 프로필 수정 전용 페이지 컴포넌트
-   - 회원 ID, 이름 수정 폼
+   - 사용자이름, 이름 수정 폼
    - 유효성 검증 로직
    - API 호출 함수
    - 저장/취소 버튼 및 네비게이션
 
 ### API 엔드포인트 추가
+
 1. **app/api/endpoints.ts**
    - `UPDATE_PROFILE`: 프로필 정보 업데이트
-   - `CHECK_MEMBER_ID`: 회원 ID 중복 확인
+   - `CHECK_USERNAME`: 사용자이름 중복 확인
 
 ## 테스트 계획
 
 ### 테스트 시나리오
 
-1. **회원 ID 변경 테스트**
-   - [ ] 유효한 회원 ID로 변경
+1. **사용자이름 변경 테스트**
+   - [ ] 유효한 사용자이름로 변경
    - [ ] 6자 미만 입력 시 에러 메시지 및 빨간색 경고 아이콘
    - [ ] 20자 초과 입력 시 에러 메시지 및 빨간색 경고 아이콘
-   - [ ] 영문 대소문자, 숫자, _ 이외의 문자 입력 시 에러 메시지
+   - [ ] 영문 대소문자, 숫자, \_ 이외의 문자 입력 시 에러 메시지
    - [ ] 입력 후 1초 대기 후 자동 중복 확인 API 호출
    - [ ] 중복 확인 중 로딩 스피너 아이콘 표시
    - [ ] 사용 가능한 ID: 초록색 체크 아이콘 + "사용 가능한 ID입니다" 메시지
@@ -347,6 +352,7 @@
    - [ ] 서버 500 에러 시 사용자 친화적 메시지
 
 ### 검증 방법
+
 - Chrome DevTools의 Device Toolbar로 모바일 시뮬레이션
 - Lighthouse로 접근성 점수 확인
 - 다양한 네트워크 속도에서 테스트 (Fast 3G, Slow 3G)
@@ -359,13 +365,14 @@
    - 토큰 만료 시 재발급
 
 2. **입력 검증**
-   - XSS 방지: memberId, displayName 입력값 sanitize
+   - XSS 방지: username, displayName 입력값 sanitize
    - SQL Injection 방지: 서버 측 파라미터 바인딩
-   - memberId 중복 확인: 서버 측에서 재검증
+   - username 중복 확인: 서버 측에서 재검증
 
 ## 체크리스트
 
 ### 디자인 적용 요구사항
+
 - [ ] `docs/design-guide.md`의 색상 시스템 적용
 - [ ] Tailwind CSS v4 커스텀 테마 사용
 - [ ] 5가지 버튼 상태 구현 (기본/hover/active/disabled/loading)
@@ -375,22 +382,24 @@
 - [ ] 8px 기반 간격 시스템 사용
 
 ### 코드 품질 요구사항
+
 - [ ] TypeScript 타입 정의
 - [ ] ESLint 규칙 준수
 - [ ] 컴포넌트 재사용성 고려
 - [ ] 성능 최적화 (애니메이션 150-300ms)
 - [ ] 에러 처리 구현
-- [ ] logger 유틸리티 사용 (console.* 직접 사용 금지)
+- [ ] logger 유틸리티 사용 (console.\* 직접 사용 금지)
 - [ ] API 엔드포인트 상수 사용 (URL 하드코딩 금지)
 
 ### 기능 요구사항
+
 - [x] 프로필 페이지에서 수정 버튼 클릭 시 /profile/edit로 이동
 - [x] 프로필 수정 페이지 별도 구현
-- [x] 회원 ID 유효성 검증 (6-20자, 영문 대소문자, 숫자, _ 허용)
-- [x] 회원 ID 입력 1초 후 자동 중복 확인 (Debounce)
-- [x] 회원 ID 중복 확인 API: `/api/members/{memberId}/check`
-- [x] 회원 ID 상태별 아이콘 표시 (로딩/성공/실패)
-- [x] 회원 ID 상태별 메시지 표시
+- [x] 사용자이름 유효성 검증 (6-20자, 영문 대소문자, 숫자, \_ 허용)
+- [x] 사용자이름 입력 1초 후 자동 중복 확인 (Debounce)
+- [x] 사용자이름 중복 확인 API: `/api/members/{username}/check`
+- [x] 사용자이름 상태별 아이콘 표시 (로딩/성공/실패)
+- [x] 사용자이름 상태별 메시지 표시
 - [x] 이름 유효성 검증
 - [x] 프로필 정보 업데이트 API 호출
 - [x] 서버 API 연동
@@ -400,6 +409,7 @@
 - [x] 취소 시 /profile로 이동
 
 ### 테스트 요구사항
+
 - [ ] 브라우저 테스트
 - [ ] 키보드 네비게이션 테스트
 - [ ] 스크린 리더 테스트
@@ -408,13 +418,14 @@
 ## 참고 자료
 
 ### 관련 문서
+
 - `docs/design-guide.md`: 디자인 시스템
 - `CLAUDE.md`: 개발 가이드라인
 - `feature/profile-page.md`: 프로필 페이지 명세서
 
 ### 관련 코드
+
 - `app/routes/profile.tsx`: 현재 프로필 페이지
 - `app/api/endpoints.ts`: API 엔드포인트 정의
 - `app/api/api.ts`: API 클라이언트
 - `app/types/member.ts`: Member 타입 정의
-
