@@ -5,8 +5,8 @@ import { BottomNav } from "@/components/BottomNav";
 import kakaoLoginImage from "@/assets/images/kakao_login_large_narrow.png";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { apiClient } from "@/api/api";
-import type { Member } from "@/types/member";
 import { logger } from "@/utils/logger";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function meta() {
   return [
@@ -17,8 +17,7 @@ export function meta() {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [member, setMember] = useState<Member | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const { accessToken, member, setAccessToken, setMember } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [totalTodos, setTotalTodos] = useState(0);
@@ -26,56 +25,6 @@ export default function Profile() {
   const [streak, setStreak] = useState(0);
   const [completionRate, setCompletionRate] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // 페이지 로드 시 accessToken 발급
-  useEffect(() => {
-    const getAccessToken = async () => {
-      try {
-        const response = await apiClient.post(API_ENDPOINTS.AUTH.TOKEN, {
-          credentials: "include", // refreshToken이 담긴 Cookie 자동 전송
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.accessToken) {
-            setAccessToken(data.accessToken);
-          }
-        }
-      } catch (error) {
-        logger.error("AccessToken 발급 오류:", error);
-      }
-    };
-
-    getAccessToken();
-  }, []);
-
-  // accessToken이 있으면 회원 정보 조회
-  useEffect(() => {
-    const fetchMemberInfo = async () => {
-      if (!accessToken) {
-        return;
-      }
-
-      try {
-        const memberResponse = await apiClient.get(API_ENDPOINTS.MEMBERS.ME, {
-          token: accessToken,
-        });
-
-        if (memberResponse.ok) {
-          const memberData = await memberResponse.json();
-          setMember(memberData);
-        } else {
-          // 토큰이 유효하지 않으면 초기화
-          setAccessToken(null);
-          setMember(null);
-        }
-      } catch (error) {
-        logger.error("회원 정보 조회 오류:", error);
-      }
-    };
-
-    fetchMemberInfo();
-  }, [accessToken]);
 
   useEffect(() => {
     // 다크 모드 설정 불러오기 및 적용
