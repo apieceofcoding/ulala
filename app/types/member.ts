@@ -3,7 +3,7 @@
  */
 
 export interface Member {
-  id: number;
+  id: string;
   username: string;
   displayName: string | null;
   imageUrl: string | null;

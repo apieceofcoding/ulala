@@ -2,6 +2,10 @@ import { useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { logger } from "@/utils/logger";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTasks } from "@/hooks/useTasks";
+import type { TaskResponse } from "@/types/task";
+import { TaskStatus } from "@/types/task";
 
 export function meta() {
   return [
@@ -10,33 +14,37 @@ export function meta() {
   ];
 }
 
-// 샘플 할 일 데이터
-const sampleTodos = [
-  { id: 1, title: "물 8잔 마시기", category: "건강", completed: false },
-  { id: 2, title: "30분 산책하기", category: "운동", completed: false },
-  { id: 3, title: "책 30페이지 읽기", category: "학습", completed: false },
-  { id: 4, title: "일기 쓰기", category: "자기계발", completed: false },
-  {
-    id: 5,
-    title: "스마트폰 사용시간 줄이기",
-    category: "디지털 디톡스",
-    completed: false,
-  },
-];
-
-interface Todo {
-  id: number;
+// 샘플 할 일 데이터 (AI 추천용)
+interface SampleTodo {
   title: string;
-  category: string;
-  completed: boolean;
+  description: string;
 }
 
+const sampleTodos: SampleTodo[] = [
+  { title: "물 8잔 마시기", description: "건강" },
+  { title: "30분 산책하기", description: "운동" },
+  { title: "책 30페이지 읽기", description: "학습" },
+  { title: "일기 쓰기", description: "자기계발" },
+  { title: "스마트폰 사용시간 줄이기", description: "디지털 디톡스" },
+];
+
 export default function Stories() {
+  const { accessToken } = useAuth();
+  const {
+    tasks,
+    isLoading: isLoadingTasks,
+    isCreating: isCreatingTask,
+    error,
+    addTask,
+    toggleTaskStatus,
+    removeTask,
+    clearError,
+  } = useTasks({ accessToken });
+
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isLoadingRecommendations, setIsLoadingRecommendations] =
     useState(false);
-  const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [newTodoCategory, setNewTodoCategory] = useState("기타");
 
@@ -57,28 +65,37 @@ export default function Stories() {
     setShowRecommendations(false);
   };
 
-  const handleSelectRecommendation = (todo: Todo) => {
-    const newTodo = { ...todo, id: Date.now() };
-    setTodos([...todos, newTodo]);
-    setShowRecommendations(false);
-  };
-
-  const handleCreateTodo = () => {
-    if (newTodoTitle.trim()) {
-      const newTodo: Todo = {
-        id: Date.now(),
-        title: newTodoTitle.trim(),
-        category: newTodoCategory,
-        completed: false,
-      };
-      setTodos([...todos, newTodo]);
-      setNewTodoTitle("");
-      setNewTodoCategory("기타");
-      setShowCreateForm(false);
+  const handleSelectRecommendation = async (sample: SampleTodo) => {
+    try {
+      await addTask({
+        title: sample.title,
+        description: sample.description,
+      });
+      setShowRecommendations(false);
+    } catch {
+      // 에러는 useTasks에서 처리
     }
   };
 
-  const generateReward = (todo: Todo) => {
+  const handleCreateTodo = async () => {
+    if (!newTodoTitle.trim()) {
+      return;
+    }
+
+    try {
+      await addTask({
+        title: newTodoTitle.trim(),
+        description: newTodoCategory,
+      });
+      setNewTodoTitle("");
+      setNewTodoCategory("기타");
+      setShowCreateForm(false);
+    } catch {
+      // 에러는 useTasks에서 처리
+    }
+  };
+
+  const generateReward = (task: TaskResponse) => {
     // 카테고리별 보상 설정
     const categoryRewards: Record<string, { icon: string; points: number }> = {
       '건강': { icon: '💧', points: 10 },
@@ -89,12 +106,13 @@ export default function Stories() {
       '기타': { icon: '🎯', points: 8 }
     };
 
-    const rewardInfo = categoryRewards[todo.category] || categoryRewards['기타'];
+    const category = task.description || '기타';
+    const rewardInfo = categoryRewards[category] || categoryRewards['기타'];
 
     const newReward = {
       id: Date.now(),
-      title: `${todo.category} 달성`,
-      description: `${todo.title}을(를) 완료했습니다`,
+      title: `${category} 달성`,
+      description: `${task.title}을(를) 완료했습니다`,
       earnedAt: new Date().toISOString(),
       type: 'points' as const,
       value: rewardInfo.points,
@@ -113,33 +131,37 @@ export default function Stories() {
     // 새 보상 알림 표시 (3초 후 자동 제거)
     setTimeout(() => {
       const currentRewards = JSON.parse(localStorage.getItem('ulala-rewards') || '[]');
-      const updatedRewards = currentRewards.map((reward: any) =>
+      const updatedRewards = currentRewards.map((reward: typeof newReward) =>
         reward.id === newReward.id ? { ...reward, isNew: false } : reward
       );
       localStorage.setItem('ulala-rewards', JSON.stringify(updatedRewards));
     }, 3000);
   };
 
-  const handleToggleTodo = (id: number) => {
-    setTodos(
-      todos.map((todo) => {
-        if (todo.id === id) {
-          const updatedTodo = { ...todo, completed: !todo.completed };
+  const handleToggleTodo = async (id: string) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
 
-          // 할 일을 완료했을 때 보상 생성
-          if (!todo.completed && updatedTodo.completed) {
-            generateReward(todo);
-          }
+    const wasCompleted = task.status === TaskStatus.DONE;
 
-          return updatedTodo;
-        }
-        return todo;
-      })
-    );
+    // 완료 시 보상 생성
+    if (!wasCompleted) {
+      generateReward(task);
+    }
+
+    try {
+      await toggleTaskStatus(id);
+    } catch {
+      // 에러는 useTasks에서 처리
+    }
   };
 
-  const handleDeleteTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleDeleteTodo = async (id: string) => {
+    try {
+      await removeTask(id);
+    } catch {
+      // 에러는 useTasks에서 처리
+    }
   };
 
   return (
@@ -147,8 +169,71 @@ export default function Stories() {
       <TopBar level={1} onSettingsClick={() => logger.log("메뉴 버튼 클릭")} />
       <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
         <div className="container max-w-lg mx-auto space-y-6">
-          {/* 할 일 목록이 없을 때 */}
-          {todos.length === 0 &&
+          {/* 에러 메시지 */}
+          {error && (
+            <div className="card-default border-2 border-error bg-error-bg p-4">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5 text-error flex-shrink-0"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                >
+                  <path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16zM8 4a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 4zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-error">{error}</p>
+                </div>
+                <button
+                  onClick={clearError}
+                  className="text-error hover:text-error-pressed"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <path
+                      d="M12 4L4 12M4 4L12 12"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 초기 로딩 상태 */}
+          {isLoadingTasks && (
+            <div className="card-default space-y-4">
+              <div className="text-center">
+                <h2 className="heading-secondary mb-2">
+                  태스크를 불러오는 중...
+                </h2>
+                <p className="body-text-small">잠시만 기다려주세요!</p>
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card-default p-3 animate-pulse">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="h-4 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded mb-2"></div>
+                        <div className="h-3 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded w-16"></div>
+                      </div>
+                      <div className="w-4 h-4 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 할 일 목록이 없을 때 (로딩 완료 후) */}
+          {
+          !isLoadingTasks &&
+            tasks.length === 0 &&
             !showRecommendations &&
             !showCreateForm &&
             !isLoadingRecommendations && (
@@ -208,18 +293,18 @@ export default function Stories() {
                 </p>
               </div>
               <div className="space-y-3">
-                {sampleTodos.map((todo) => (
+                {sampleTodos.map((sample, index) => (
                   <button
-                    key={todo.id}
-                    onClick={() => handleSelectRecommendation(todo)}
+                    key={index}
+                    onClick={() => handleSelectRecommendation(sample)}
                     className="card-clickable p-3 cursor-pointer w-full text-left"
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-medium text-text-primary dark:text-text-primary-dark">
-                          {todo.title}
+                          {sample.title}
                         </h3>
-                        <p className="caption-text">{todo.category}</p>
+                        <p className="caption-text">{sample.description}</p>
                       </div>
                       <svg
                         width="16"
@@ -301,14 +386,15 @@ export default function Stories() {
                 <div className="flex gap-3">
                   <button
                     onClick={handleCreateTodo}
-                    disabled={!newTodoTitle.trim()}
+                    disabled={!newTodoTitle.trim() || isCreatingTask}
                     className="btn-primary flex-1 disabled:bg-primary-disabled disabled:cursor-not-allowed"
                   >
-                    만들기
+                    {isCreatingTask ? "만드는 중..." : "만들기"}
                   </button>
                   <button
                     onClick={() => setShowCreateForm(false)}
-                    className="btn-secondary flex-1"
+                    disabled={isCreatingTask}
+                    className="btn-secondary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     취소
                   </button>
@@ -318,7 +404,7 @@ export default function Stories() {
           )}
 
           {/* 할 일 목록 */}
-          {todos.length > 0 && (
+          {tasks.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="heading-secondary">오늘의 할 일</h2>
@@ -338,21 +424,21 @@ export default function Stories() {
                 </div>
               </div>
               <div className="space-y-3">
-                {todos.map((todo) => (
+                {tasks.map((task) => (
                   <div
-                    key={todo.id}
-                    className={`card-default p-4 ${todo.completed ? "opacity-60" : ""}`}
+                    key={task.id}
+                    className={`card-default p-4 ${task.status === TaskStatus.DONE ? "opacity-60" : ""}`}
                   >
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleToggleTodo(todo.id)}
+                        onClick={() => handleToggleTodo(task.id)}
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                          todo.completed
+                          task.status === TaskStatus.DONE
                             ? "bg-primary border-primary"
                             : "border-border-light dark:border-border-dark hover:border-primary"
                         }`}
                       >
-                        {todo.completed && (
+                        {task.status === TaskStatus.DONE && (
                           <svg
                             width="12"
                             height="12"
@@ -371,14 +457,14 @@ export default function Stories() {
                       </button>
                       <div className="flex-1">
                         <h3
-                          className={`font-medium ${todo.completed ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
+                          className={`font-medium ${task.status === TaskStatus.DONE ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
                         >
-                          {todo.title}
+                          {task.title}
                         </h3>
-                        <p className="caption-text">{todo.category}</p>
+                        <p className="caption-text">{task.description || "기타"}</p>
                       </div>
                       <button
-                        onClick={() => handleDeleteTodo(todo.id)}
+                        onClick={() => handleDeleteTodo(task.id)}
                         className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-secondary dark:hover:text-text-secondary-dark"
                       >
                         <svg
@@ -401,8 +487,8 @@ export default function Stories() {
               </div>
               <div className="text-center">
                 <p className="caption-text">
-                  완료: {todos.filter((t) => t.completed).length} /{" "}
-                  {todos.length}
+                  완료: {tasks.filter((t) => t.status === TaskStatus.DONE).length} /{" "}
+                  {tasks.length}
                 </p>
               </div>
             </div>

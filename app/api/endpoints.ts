@@ -36,6 +36,22 @@ export const MEMBER_ENDPOINTS = {
 } as const;
 
 /**
+ * Task 관련 엔드포인트
+ */
+export const TASK_ENDPOINTS = {
+  /** 내 태스크 목록 조회 */
+  LIST: "/api/tasks",
+  /** 태스크 생성 */
+  CREATE: "/api/tasks",
+  /** 태스크 상세 조회 */
+  GET: (id: string) => `/api/tasks/${id}`,
+  /** 태스크 수정 */
+  UPDATE: (id: string) => `/api/tasks/${id}`,
+  /** 태스크 삭제 */
+  DELETE: (id: string) => `/api/tasks/${id}`,
+} as const;
+
+/**
  * 전체 API 엔드포인트
  * 카테고리별로 그룹화된 엔드포인트를 포함합니다.
  */
@@ -43,6 +59,7 @@ export const API_ENDPOINTS = {
   AUTH: AUTH_ENDPOINTS,
   OAUTH: OAUTH_ENDPOINTS,
   MEMBERS: MEMBER_ENDPOINTS,
+  TASKS: TASK_ENDPOINTS,
 } as const;
 
 /**
