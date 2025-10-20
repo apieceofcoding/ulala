@@ -15,17 +15,17 @@ export function meta() {
 }
 
 // 샘플 할 일 데이터 (AI 추천용)
-interface SampleTodo {
+interface SampleTask {
   title: string;
-  description: string;
+  description?: string;
 }
 
-const sampleTodos: SampleTodo[] = [
-  { title: "물 8잔 마시기", description: "건강" },
-  { title: "30분 산책하기", description: "운동" },
-  { title: "책 30페이지 읽기", description: "학습" },
-  { title: "일기 쓰기", description: "자기계발" },
-  { title: "스마트폰 사용시간 줄이기", description: "디지털 디톡스" },
+const sampleTasks: SampleTask[] = [
+  { title: "물 8잔 마시기", description: "하루 2L 목표" },
+  { title: "30분 산책하기", description: "공원에서 가볍게" },
+  { title: "책 30페이지 읽기", description: "자기계발서" },
+  { title: "일기 쓰기", description: "오늘 있었던 일 정리" },
+  { title: "스마트폰 사용시간 줄이기", description: "SNS 사용 1시간 이내로" },
 ];
 
 export default function Stories() {
@@ -36,6 +36,7 @@ export default function Stories() {
     isCreating: isCreatingTask,
     error,
     addTask,
+    editTask,
     toggleTaskStatus,
     removeTask,
     clearError,
@@ -45,8 +46,13 @@ export default function Stories() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isLoadingRecommendations, setIsLoadingRecommendations] =
     useState(false);
-  const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [newTodoCategory, setNewTodoCategory] = useState("기타");
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [selectedTask, setSelectedTask] = useState<TaskResponse | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const handleShowRecommendations = () => {
     setIsLoadingRecommendations(true);
@@ -65,7 +71,7 @@ export default function Stories() {
     setShowRecommendations(false);
   };
 
-  const handleSelectRecommendation = async (sample: SampleTodo) => {
+  const handleSelectRecommendation = async (sample: SampleTask) => {
     try {
       await addTask({
         title: sample.title,
@@ -77,18 +83,18 @@ export default function Stories() {
     }
   };
 
-  const handleCreateTodo = async () => {
-    if (!newTodoTitle.trim()) {
+  const handleCreateTask = async () => {
+    if (!newTaskTitle.trim()) {
       return;
     }
 
     try {
       await addTask({
-        title: newTodoTitle.trim(),
-        description: newTodoCategory,
+        title: newTaskTitle.trim(),
+        description: newTaskDescription.trim() || undefined,
       });
-      setNewTodoTitle("");
-      setNewTodoCategory("기타");
+      setNewTaskTitle("");
+      setNewTaskDescription("");
       setShowCreateForm(false);
     } catch {
       // 에러는 useTasks에서 처리
@@ -98,51 +104,54 @@ export default function Stories() {
   const generateReward = (task: TaskResponse) => {
     // 카테고리별 보상 설정
     const categoryRewards: Record<string, { icon: string; points: number }> = {
-      '건강': { icon: '💧', points: 10 },
-      '운동': { icon: '🚶‍♂️', points: 15 },
-      '학습': { icon: '📚', points: 20 },
-      '자기계발': { icon: '✨', points: 12 },
-      '디지털 디톡스': { icon: '📱', points: 18 },
-      '기타': { icon: '🎯', points: 8 }
+      건강: { icon: "💧", points: 10 },
+      운동: { icon: "🚶‍♂️", points: 15 },
+      학습: { icon: "📚", points: 20 },
+      자기계발: { icon: "✨", points: 12 },
+      "디지털 디톡스": { icon: "📱", points: 18 },
+      기타: { icon: "🎯", points: 8 },
     };
 
-    const category = task.description || '기타';
-    const rewardInfo = categoryRewards[category] || categoryRewards['기타'];
+    const category = task.description || "기타";
+    const rewardInfo = categoryRewards[category] || categoryRewards["기타"];
 
     const newReward = {
       id: Date.now(),
       title: `${category} 달성`,
       description: `${task.title}을(를) 완료했습니다`,
       earnedAt: new Date().toISOString(),
-      type: 'points' as const,
+      type: "points" as const,
       value: rewardInfo.points,
       icon: rewardInfo.icon,
-      isNew: true
+      isNew: true,
     };
 
     // 로컬 스토리지에서 기존 보상 가져오기
-    const savedRewards = localStorage.getItem('ulala-rewards');
+    const savedRewards = localStorage.getItem("ulala-rewards");
     const rewards = savedRewards ? JSON.parse(savedRewards) : [];
 
     // 새 보상 추가
     const updatedRewards = [newReward, ...rewards];
-    localStorage.setItem('ulala-rewards', JSON.stringify(updatedRewards));
+    localStorage.setItem("ulala-rewards", JSON.stringify(updatedRewards));
 
     // 새 보상 알림 표시 (3초 후 자동 제거)
     setTimeout(() => {
-      const currentRewards = JSON.parse(localStorage.getItem('ulala-rewards') || '[]');
+      const currentRewards = JSON.parse(
+        localStorage.getItem("ulala-rewards") || "[]"
+      );
       const updatedRewards = currentRewards.map((reward: typeof newReward) =>
         reward.id === newReward.id ? { ...reward, isNew: false } : reward
       );
-      localStorage.setItem('ulala-rewards', JSON.stringify(updatedRewards));
+      localStorage.setItem("ulala-rewards", JSON.stringify(updatedRewards));
     }, 3000);
   };
 
-  const handleToggleTodo = async (id: string) => {
+  const handleToggleTask = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
     const wasCompleted = task.status === TaskStatus.DONE;
+    const newStatus = wasCompleted ? TaskStatus.TODO : TaskStatus.DONE;
 
     // 완료 시 보상 생성
     if (!wasCompleted) {
@@ -151,17 +160,64 @@ export default function Stories() {
 
     try {
       await toggleTaskStatus(id);
+
+      // selectedTask가 현재 토글하는 task라면 업데이트
+      if (selectedTask && selectedTask.id === id) {
+        setSelectedTask({
+          ...selectedTask,
+          status: newStatus,
+          endAt: newStatus === TaskStatus.DONE ? new Date().toISOString() : null,
+        });
+      }
     } catch {
       // 에러는 useTasks에서 처리
     }
   };
 
-  const handleDeleteTodo = async (id: string) => {
+  const handleDeleteTask = async (id: string) => {
     try {
       await removeTask(id);
     } catch {
       // 에러는 useTasks에서 처리
     }
+  };
+
+  const handleEditTask = async () => {
+    if (!selectedTask || !editTitle.trim()) {
+      return;
+    }
+
+    try {
+      await editTask(selectedTask.id, {
+        title: editTitle.trim(),
+        description: editDescription.trim() || undefined,
+      });
+
+      // selectedTask를 업데이트하여 모달에 변경된 내용 표시
+      setSelectedTask({
+        ...selectedTask,
+        title: editTitle.trim(),
+        description: editDescription.trim() || null,
+      });
+
+      setIsEditMode(false);
+    } catch {
+      // 에러는 useTasks에서 처리
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (selectedTask) {
+      setEditTitle(selectedTask.title);
+      setEditDescription(selectedTask.description || "");
+      setIsEditMode(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditTitle("");
+    setEditDescription("");
   };
 
   return (
@@ -187,12 +243,7 @@ export default function Stories() {
                   onClick={clearError}
                   className="text-error hover:text-error-pressed"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                  >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path
                       d="M12 4L4 12M4 4L12 12"
                       stroke="currentColor"
@@ -231,8 +282,7 @@ export default function Stories() {
           )}
 
           {/* 할 일 목록이 없을 때 (로딩 완료 후) */}
-          {
-          !isLoadingTasks &&
+          {!isLoadingTasks &&
             tasks.length === 0 &&
             !showRecommendations &&
             !showCreateForm &&
@@ -293,7 +343,7 @@ export default function Stories() {
                 </p>
               </div>
               <div className="space-y-3">
-                {sampleTodos.map((sample, index) => (
+                {sampleTasks.map((sample, index) => (
                   <button
                     key={index}
                     onClick={() => handleSelectRecommendation(sample)}
@@ -304,7 +354,9 @@ export default function Stories() {
                         <h3 className="font-medium text-text-primary dark:text-text-primary-dark">
                           {sample.title}
                         </h3>
-                        <p className="caption-text">{sample.description}</p>
+                        {sample.description && (
+                          <p className="caption-text">{sample.description}</p>
+                        )}
                       </div>
                       <svg
                         width="16"
@@ -345,48 +397,26 @@ export default function Stories() {
                   <label className="block caption-text mb-2">할 일</label>
                   <input
                     type="text"
-                    value={newTodoTitle}
-                    onChange={(e) => setNewTodoTitle(e.target.value)}
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
                     placeholder="예: 책 읽기, 운동하기"
                     className="w-full px-4 py-2 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark"
                   />
                 </div>
                 <div>
-                  <label className="block caption-text mb-2">카테고리</label>
-                  <div className="relative">
-                    <select
-                      value={newTodoCategory}
-                      onChange={(e) => setNewTodoCategory(e.target.value)}
-                      className="w-full px-4 py-2 pr-10 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="건강">건강</option>
-                      <option value="운동">운동</option>
-                      <option value="학습">학습</option>
-                      <option value="자기계발">자기계발</option>
-                      <option value="취미">취미</option>
-                      <option value="기타">기타</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg
-                        className="w-4 h-4 text-text-tertiary dark:text-text-tertiary-dark"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
+                  <label className="block caption-text mb-2">메모 (선택)</label>
+                  <input
+                    type="text"
+                    value={newTaskDescription}
+                    onChange={(e) => setNewTaskDescription(e.target.value)}
+                    placeholder="예: 30페이지 목표, 공원에서 가볍게 등"
+                    className="w-full px-4 py-2 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark"
+                  />
                 </div>
                 <div className="flex gap-3">
                   <button
-                    onClick={handleCreateTodo}
-                    disabled={!newTodoTitle.trim() || isCreatingTask}
+                    onClick={handleCreateTask}
+                    disabled={!newTaskTitle.trim() || isCreatingTask}
                     className="btn-primary flex-1 disabled:bg-primary-disabled disabled:cursor-not-allowed"
                   >
                     {isCreatingTask ? "만드는 중..." : "만들기"}
@@ -431,8 +461,8 @@ export default function Stories() {
                   >
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleToggleTodo(task.id)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        onClick={() => handleToggleTask(task.id)}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                           task.status === TaskStatus.DONE
                             ? "bg-primary border-primary"
                             : "border-border-light dark:border-border-dark hover:border-primary"
@@ -455,39 +485,35 @@ export default function Stories() {
                           </svg>
                         )}
                       </button>
-                      <div className="flex-1">
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => setSelectedTask(task)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedTask(task);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
                         <h3
                           className={`font-medium ${task.status === TaskStatus.DONE ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
                         >
                           {task.title}
                         </h3>
-                        <p className="caption-text">{task.description || "기타"}</p>
+                        {task.description && (
+                          <p className="caption-text">{task.description}</p>
+                        )}
                       </div>
-                      <button
-                        onClick={() => handleDeleteTodo(task.id)}
-                        className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-secondary dark:hover:text-text-secondary-dark"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                        >
-                          <path
-                            d="M12 4L4 12M4 4L12 12"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="text-center">
                 <p className="caption-text">
-                  완료: {tasks.filter((t) => t.status === TaskStatus.DONE).length} /{" "}
+                  완료:{" "}
+                  {tasks.filter((t) => t.status === TaskStatus.DONE).length} /{" "}
                   {tasks.length}
                 </p>
               </div>
@@ -496,6 +522,218 @@ export default function Stories() {
         </div>
       </main>
       <BottomNav />
+
+      {/* Task 상세보기 모달 */}
+      {selectedTask && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          onClick={() => {
+            setSelectedTask(null);
+            setShowDeleteConfirm(false);
+            setIsEditMode(false);
+            setEditTitle("");
+            setEditDescription("");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setSelectedTask(null);
+              setShowDeleteConfirm(false);
+              setIsEditMode(false);
+              setEditTitle("");
+              setEditDescription("");
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
+        >
+          <div
+            className="card-default max-w-md w-full space-y-4"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="document"
+          >
+            <div className="flex items-center justify-between gap-3">
+              {isEditMode ? (
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark font-semibold text-lg"
+                  autoFocus
+                />
+              ) : (
+                <h2 className="heading-secondary truncate">
+                  {selectedTask.title}
+                </h2>
+              )}
+              <button
+                onClick={() => {
+                  setSelectedTask(null);
+                  setShowDeleteConfirm(false);
+                  setIsEditMode(false);
+                  setEditTitle("");
+                  setEditDescription("");
+                }}
+                className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-secondary dark:hover:text-text-secondary-dark flex-shrink-0"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M12 4L4 12M4 4L12 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* 메모 */}
+              <div>
+                <label className="block caption-text mb-2">메모</label>
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="예: 30페이지 목표, 공원에서 가볍게 등"
+                    className="w-full px-4 py-2 rounded bg-bg-secondary dark:bg-bg-secondary-dark text-text-primary dark:text-text-primary-dark"
+                  />
+                ) : selectedTask.description ? (
+                  <p className="body-text">{selectedTask.description}</p>
+                ) : (
+                  <p className="caption-text">메모 없음</p>
+                )}
+              </div>
+
+              {/* 상태 */}
+              <div>
+                <label className="block caption-text mb-2">상태</label>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      selectedTask.status === TaskStatus.DONE
+                        ? "bg-primary"
+                        : "bg-text-tertiary dark:bg-text-tertiary-dark"
+                    }`}
+                  />
+                  <p className="body-text">
+                    {selectedTask.status === TaskStatus.DONE
+                      ? "완료"
+                      : "진행 중"}
+                  </p>
+                </div>
+              </div>
+
+              {/* 생성일 */}
+              {selectedTask.createdAt && (
+                <div>
+                  <label className="block caption-text mb-2">생성일</label>
+                  <p className="body-text">
+                    {new Date(selectedTask.createdAt).toLocaleDateString(
+                      "ko-KR",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* 완료일 */}
+              {selectedTask.status === TaskStatus.DONE &&
+                (selectedTask.endAt || selectedTask.modifiedAt) && (
+                  <div>
+                    <label className="block caption-text mb-2">완료일</label>
+                    <p className="body-text">
+                      {new Date(
+                        selectedTask.endAt || selectedTask.modifiedAt!
+                      ).toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                )}
+            </div>
+
+            {/* 액션 버튼 */}
+            {isEditMode ? (
+              <div className="flex gap-3 pt-4 border-t border-border-light dark:border-border-dark">
+                <button
+                  onClick={handleCancelEdit}
+                  className="btn-secondary flex-1"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleEditTask}
+                  disabled={!editTitle.trim()}
+                  className="btn-primary flex-1 disabled:bg-primary-disabled disabled:cursor-not-allowed"
+                >
+                  저장
+                </button>
+              </div>
+            ) : !showDeleteConfirm ? (
+              <div className="flex gap-3 pt-4 border-t border-border-light dark:border-border-dark">
+                <button
+                  onClick={handleStartEdit}
+                  className="btn-secondary flex-1"
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => handleToggleTask(selectedTask.id)}
+                  className="btn-secondary flex-1"
+                >
+                  {selectedTask.status === TaskStatus.DONE
+                    ? "미완료로 변경"
+                    : "완료로 변경"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn-secondary flex-1 !text-error hover:!bg-error-bg"
+                >
+                  삭제
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 pt-4 border-t border-border-light dark:border-border-dark">
+                <div className="text-center">
+                  <p className="body-text text-error font-medium">
+                    정말 삭제하시겠습니까?
+                  </p>
+                  <p className="caption-text mt-1">
+                    삭제된 할 일은 복구할 수 없습니다.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="btn-secondary flex-1"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleDeleteTask(selectedTask.id);
+                      setSelectedTask(null);
+                      setShowDeleteConfirm(false);
+                    }}
+                    className="btn-primary flex-1 !bg-error !hover:bg-error-pressed"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
