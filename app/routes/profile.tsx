@@ -5,7 +5,6 @@ import { BottomNav } from "@/components/BottomNav";
 import kakaoLoginImage from "@/assets/images/kakao_login_large_narrow.png";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { apiClient } from "@/api/api";
-import { logger } from "@/utils/logger";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function meta() {
@@ -146,10 +145,7 @@ export default function Profile() {
 
   return (
     <>
-      <TopBar
-        level={level}
-        onSettingsClick={() => logger.log("메뉴 버튼 클릭")}
-      />
+      <TopBar level={level} />
       <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pt-14 pb-16 md:pb-1 md:pl-64">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 로그인 전 상태 */}
