@@ -162,6 +162,8 @@ interface DroppableSectionProps {
   emptyMessage: string;
   onToggle: (id: string) => void;
   onClick: (task: TaskResponse) => void;
+  collapsed?: boolean;
+  onToggleCollapse: () => void;
 }
 
 function DroppableSection({
@@ -171,6 +173,8 @@ function DroppableSection({
   emptyMessage,
   onToggle,
   onClick,
+  collapsed = false,
+  onToggleCollapse,
 }: DroppableSectionProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -178,30 +182,54 @@ function DroppableSection({
 
   return (
     <section className="space-y-3" aria-label={title}>
-      <h2 className="heading-secondary flex items-center gap-2">
-        {title} <span className="caption-text">({tasks.length})</span>
-      </h2>
-      <div
-        ref={setNodeRef}
-        className={`bg-bg-secondary dark:bg-bg-secondary-dark p-4 rounded-lg space-y-3 min-h-[100px] transition-colors ${
-          isOver ? "bg-primary/10 border-2 border-dashed border-primary" : ""
-        }`}
+      <button
+        onClick={onToggleCollapse}
+        className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
       >
-        {tasks.length === 0 ? (
-          <p className="body-text-small text-text-tertiary dark:text-text-tertiary-dark text-center py-4">
-            {emptyMessage}
-          </p>
-        ) : (
-          tasks.map((task) => (
-            <DraggableTaskCard
-              key={task.id}
-              task={task}
-              onToggle={onToggle}
-              onClick={onClick}
-            />
-          ))
-        )}
-      </div>
+        <h2 className="heading-secondary flex items-center gap-2">
+          {title} <span className="caption-text">({tasks.length})</span>
+        </h2>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          className={`text-text-secondary dark:text-text-secondary-dark transition-transform ${
+            collapsed ? "-rotate-90" : ""
+          }`}
+        >
+          <path
+            d="M4 6L8 10L12 6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      {!collapsed && (
+        <div
+          ref={setNodeRef}
+          className={`bg-bg-secondary dark:bg-bg-secondary-dark p-4 rounded-lg space-y-3 min-h-[100px] transition-colors ${
+            isOver ? "bg-primary/10 border-2 border-dashed border-primary" : ""
+          }`}
+        >
+          {tasks.length === 0 ? (
+            <p className="body-text-small text-text-tertiary dark:text-text-tertiary-dark text-center py-4">
+              {emptyMessage}
+            </p>
+          ) : (
+            tasks.map((task) => (
+              <DraggableTaskCard
+                key={task.id}
+                task={task}
+                onToggle={onToggle}
+                onClick={onClick}
+              />
+            ))
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -231,6 +259,14 @@ export default function Stories() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [activeTask, setActiveTask] = useState<TaskResponse | null>(null);
+
+  // 섹션 접기/펼치기 상태 (localStorage에서 불러오기)
+  const [collapsedSections, setCollapsedSections] = useState<{
+    [key in TaskStatus]?: boolean;
+  }>(() => {
+    const saved = localStorage.getItem("ulala-collapsed-sections");
+    return saved ? JSON.parse(saved) : {};
+  });
 
   // 드래그 센서 설정 (터치 및 마우스 지원)
   const sensors = useSensors(
@@ -412,6 +448,19 @@ export default function Stories() {
     setIsEditMode(false);
     setEditTitle("");
     setEditDescription("");
+  };
+
+  // 섹션 접기/펼치기 토글
+  const toggleSection = (sectionId: TaskStatus) => {
+    setCollapsedSections((prev) => {
+      const newState = {
+        ...prev,
+        [sectionId]: !prev[sectionId],
+      };
+      // localStorage에 저장
+      localStorage.setItem("ulala-collapsed-sections", JSON.stringify(newState));
+      return newState;
+    });
   };
 
   // 드래그 시작
@@ -704,6 +753,8 @@ export default function Stories() {
                   emptyMessage="할 일이 없습니다"
                   onToggle={handleToggleTask}
                   onClick={setSelectedTask}
+                  collapsed={collapsedSections[TaskStatus.TODO]}
+                  onToggleCollapse={() => toggleSection(TaskStatus.TODO)}
                 />
 
                 {/* 진행중 섹션 */}
@@ -714,6 +765,8 @@ export default function Stories() {
                   emptyMessage="진행 중인 태스크가 없습니다"
                   onToggle={handleToggleTask}
                   onClick={setSelectedTask}
+                  collapsed={collapsedSections[TaskStatus.IN_PROGRESS]}
+                  onToggleCollapse={() => toggleSection(TaskStatus.IN_PROGRESS)}
                 />
 
                 {/* 완료 섹션 */}
@@ -724,6 +777,8 @@ export default function Stories() {
                   emptyMessage="완료된 태스크가 없습니다"
                   onToggle={handleToggleTask}
                   onClick={setSelectedTask}
+                  collapsed={collapsedSections[TaskStatus.DONE]}
+                  onToggleCollapse={() => toggleSection(TaskStatus.DONE)}
                 />
 
                 {/* 전체 통계 */}
