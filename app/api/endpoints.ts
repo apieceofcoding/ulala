@@ -49,6 +49,8 @@ export const TASK_ENDPOINTS = {
   UPDATE: (id: string) => `/api/tasks/${id}`,
   /** 태스크 삭제 */
   DELETE: (id: string) => `/api/tasks/${id}`,
+  /** 일별 태스크 통계 조회 */
+  DAILY_STATS: "/api/tasks/daily-stats",
 } as const;
 
 /**

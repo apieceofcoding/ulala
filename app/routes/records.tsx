@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
+import { useAuth } from "@/contexts/AuthContext";
+import { API_ENDPOINTS } from "@/api/endpoints";
+import { apiClient } from "@/api/api";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -9,49 +13,90 @@ export function meta() {
   ];
 }
 
-// 날짜별 스토리 완료 데이터 (샘플 - 2024년 9월)
-const storyCompletions: Record<string, number> = {
-  "2025-09-01": 2,
-  "2025-09-02": 4,
-  "2025-09-03": 3,
-  "2025-09-05": 5,
-  "2025-09-06": 1,
-  "2025-09-07": 3,
-  "2025-09-08": 6,
-  "2025-09-10": 2,
-  "2025-09-11": 4,
-  "2025-09-12": 3,
-  "2025-09-14": 5,
-  "2025-09-15": 7,
-  "2025-09-16": 1,
-  "2025-09-17": 4,
-  "2025-09-19": 3,
-  "2025-09-20": 2,
-  "2025-09-21": 6,
-  "2025-09-22": 4,
-  "2025-09-23": 5,
-  "2025-09-25": 3,
-  "2025-09-26": 2,
-  "2025-09-27": 4,
-  "2025-09-28": 1,
-  "2025-09-29": 5,
-  "2025-09-30": 3,
+// 날짜별 스토리 기록 타입 정의
+type StoryRecord = {
+  date: string; // YYYY-MM-DD 형식
+  storyCount: number; // 해당 날짜가 modifiedAt인 스토리 수
 };
 
-function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+// 현재 월에 대한 샘플 스토리 기록 데이터 생성 (로그인하지 않은 상태에서 보여주는 샘플)
+function generateSampleRecords(): StoryRecord[] {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const records: StoryRecord[] = [];
 
+  // 현재 월의 약 60-70% 날짜에 랜덤하게 스토리 기록 데이터 생성
+  for (let day = 1; day <= daysInMonth; day++) {
+    // 60-70% 확률로 해당 날짜에 데이터 생성
+    if (Math.random() < 0.65) {
+      const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      // 1~7개 사이의 랜덤한 스토리 수
+      records.push({
+        date: dateString,
+        storyCount: Math.floor(Math.random() * 7) + 1,
+      });
+    }
+  }
+
+  return records;
+}
+
+// 달력 표시 범위의 시작일과 종료일을 계산하는 함수
+function getCalendarDateRange(currentDate: Date) {
+  // 현재 월의 첫째 날
+  const firstDay = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+
+  // 현재 월의 마지막 날
+  const lastDay = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  );
+
+  // 첫째 날이 포함된 주의 일요일
+  const startDate = new Date(firstDay);
+  startDate.setDate(firstDay.getDate() - firstDay.getDay() + 1);
+
+  // 마지막 날이 포함된 주의 토요일
+  const endDate = new Date(lastDay);
+  endDate.setDate(lastDay.getDate() + (7 - lastDay.getDay()));
+
+  return {
+    startDate: startDate.toISOString().split("T")[0],
+    endDate: endDate.toISOString().split("T")[0],
+  };
+}
+
+interface CalendarProps {
+  storyRecords: StoryRecord[];
+  currentDate: Date;
+  onMonthChange: (date: Date) => void;
+}
+
+function Calendar({ storyRecords, currentDate, onMonthChange }: CalendarProps) {
   // 이전/다음 달로 이동
   const goToPreviousMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 1,
+      1
     );
+    onMonthChange(newDate);
   };
 
   const goToNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
     );
+    onMonthChange(newDate);
   };
 
   // 현재 월의 첫째 날
@@ -76,13 +121,14 @@ function Calendar() {
       const date = new Date(currentWeekDate);
       const dateString = date.toISOString().split("T")[0];
       const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-      const completions = storyCompletions[dateString] || 0;
+      const recordData = storyRecords.find((item) => item.date === dateString);
+      const storyCount = recordData?.storyCount || 0;
 
       days.push({
         date: date.getDate(),
         fullDate: dateString,
         isCurrentMonth,
-        completions,
+        storyCount,
         isToday: dateString === new Date().toISOString().split("T")[0],
       });
 
@@ -106,17 +152,17 @@ function Calendar() {
     "12월",
   ];
 
-  const getCompletionColor = (completions: number) => {
-    if (completions === 0) return "bg-bg-tertiary dark:bg-bg-tertiary-dark";
-    if (completions <= 2) return "bg-success/30";
-    if (completions <= 4) return "bg-success/60";
+  const getStoryCountColor = (storyCount: number) => {
+    if (storyCount === 0) return "bg-bg-tertiary dark:bg-bg-tertiary-dark";
+    if (storyCount <= 2) return "bg-success/30";
+    if (storyCount <= 4) return "bg-success/60";
     return "bg-success";
   };
 
   return (
     <div className="card-default">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="heading-secondary">스토리 완료 캘린더</h3>
+        <h3 className="heading-secondary">스토리 기록</h3>
         <div className="flex items-center gap-3">
           <button
             onClick={goToPreviousMonth}
@@ -189,17 +235,17 @@ function Calendar() {
                   aspect-square flex flex-col items-center justify-center text-xs rounded transition-colors duration-150
                   ${day.isCurrentMonth ? "text-text-primary dark:text-text-primary-dark" : "text-text-tertiary dark:text-text-tertiary-dark"}
                   ${day.isToday ? "ring-2 ring-primary" : ""}
-                  ${getCompletionColor(day.completions)}
-                  ${day.completions > 0 ? "hover:scale-105 cursor-pointer" : ""}
+                  ${getStoryCountColor(day.storyCount)}
+                  ${day.storyCount > 0 ? "hover:scale-105 cursor-pointer" : ""}
                 `}
                 title={
-                  day.completions > 0 ? `${day.completions}개 스토리 완료` : ""
+                  day.storyCount > 0 ? `${day.storyCount}개 스토리 완료` : ""
                 }
               >
                 <span className="font-medium">{day.date}</span>
-                {day.completions > 0 && (
+                {day.storyCount > 0 && (
                   <span className="text-[10px] font-bold text-white">
-                    {day.completions}
+                    {day.storyCount}
                   </span>
                 )}
               </div>
@@ -232,6 +278,53 @@ function Calendar() {
 }
 
 export default function Records() {
+  const { accessToken } = useAuth();
+  const [storyRecords, setStoryRecords] = useState<StoryRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // 스토리 기록 데이터 조회
+  useEffect(() => {
+    const fetchStoryRecords = async () => {
+      if (!accessToken) {
+        // 로그인하지 않은 경우 샘플 데이터 사용
+        setStoryRecords(generateSampleRecords());
+        return;
+      }
+
+      // 로그인한 경우 API로 데이터 조회
+      setIsLoading(true);
+      try {
+        const { startDate, endDate } = getCalendarDateRange(currentMonth);
+        const url = `${API_ENDPOINTS.TASKS.DAILY_STATS}?startDate=${startDate}&endDate=${endDate}`;
+
+        const response = await apiClient.get(url, { token: accessToken });
+
+        if (response.ok) {
+          const data = await response.json();
+          // API 응답 데이터를 StoryRecord 형식으로 변환
+          const records: StoryRecord[] = data.map(
+            (item: { date: string; count: number }) => ({
+              date: item.date,
+              storyCount: item.count,
+            })
+          );
+          setStoryRecords(records);
+        } else {
+          logger.error("스토리 기록 조회 실패");
+          setStoryRecords([]);
+        }
+      } catch (error) {
+        logger.error("스토리 기록 조회 오류:", error);
+        setStoryRecords([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStoryRecords();
+  }, [accessToken, currentMonth]);
+
   return (
     <>
       <TopBar level={1} />
@@ -253,8 +346,20 @@ export default function Records() {
                 </div>
               </div>
 
-              <Calendar />
-              
+              {isLoading ? (
+                <div className="card-default text-center py-8">
+                  <div className="text-text-secondary dark:text-text-secondary-dark">
+                    데이터를 불러오는 중...
+                  </div>
+                </div>
+              ) : (
+                <Calendar
+                  storyRecords={storyRecords}
+                  currentDate={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                />
+              )}
+
               <div className="card-default">
                 <h3 className="heading-secondary mb-2">최근 활동</h3>
                 <div className="space-y-3">
