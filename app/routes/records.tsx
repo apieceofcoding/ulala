@@ -302,6 +302,12 @@ export default function Records() {
       }))
     : generateSampleRecords();
 
+  // 오늘의 스토리 수 계산
+  const todayDateString = new Date().toISOString().split("T")[0];
+  const todayStoryCount =
+    storyRecords.find((record) => record.date === todayDateString)
+      ?.storyCount || 0;
+
   return (
     <>
       <TopBar level={1} />
@@ -313,8 +319,10 @@ export default function Records() {
                 <h3 className="heading-secondary mb-2">오늘의 진행</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">5</div>
-                    <div className="caption-text">완료한 할 일</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {todayStoryCount}
+                    </div>
+                    <div className="caption-text">오늘의 스토리</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-accent">2</div>
