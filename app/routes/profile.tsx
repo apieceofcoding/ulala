@@ -17,7 +17,7 @@ export function meta() {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { accessToken, member, setAccessToken, setMember } = useAuth();
+  const { accessToken, member, setAccessToken, setMember, fetchMember } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [totalTodos, setTotalTodos] = useState(0);
@@ -25,6 +25,13 @@ export default function Profile() {
   const [streak, setStreak] = useState(0);
   const [completionRate, setCompletionRate] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // accessToken이 있으면 member 정보 조회
+  useEffect(() => {
+    if (accessToken && !member) {
+      fetchMember();
+    }
+  }, [accessToken, member, fetchMember]);
 
   useEffect(() => {
     // 다크 모드 설정 불러오기 및 적용

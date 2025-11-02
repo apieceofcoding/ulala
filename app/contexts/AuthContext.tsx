@@ -12,6 +12,7 @@ interface AuthContextType {
   setMember: (member: Member | null) => void;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
+  fetchMember: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,33 +46,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // accessToken이 있으면 회원 정보 조회
-  useEffect(() => {
-    const fetchMemberInfo = async () => {
-      if (!accessToken || member) {
-        return;
+  // 회원 정보 조회 함수 (필요할 때만 호출)
+  const fetchMember = async () => {
+    if (!accessToken) {
+      logger.warn("accessToken이 없어 회원 정보를 조회할 수 없습니다.");
+      return;
+    }
+
+    try {
+      const memberResponse = await apiClient.get(API_ENDPOINTS.MEMBERS.ME, {
+        token: accessToken,
+      });
+
+      if (memberResponse.ok) {
+        const memberData = await memberResponse.json();
+        setMember(memberData);
+      } else {
+        // 토큰이 유효하지 않으면 초기화
+        setAccessToken(null);
+        setMember(null);
       }
-
-      try {
-        const memberResponse = await apiClient.get(API_ENDPOINTS.MEMBERS.ME, {
-          token: accessToken,
-        });
-
-        if (memberResponse.ok) {
-          const memberData = await memberResponse.json();
-          setMember(memberData);
-        } else {
-          // 토큰이 유효하지 않으면 초기화
-          setAccessToken(null);
-          setMember(null);
-        }
-      } catch (error) {
-        logger.error("회원 정보 조회 오류:", error);
-      }
-    };
-
-    fetchMemberInfo();
-  }, [accessToken, member]);
+    } catch (error) {
+      logger.error("회원 정보 조회 오류:", error);
+    }
+  };
 
   // 인증 정보 강제 갱신 함수
   const refreshAuth = async () => {
@@ -108,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMember,
         isLoading,
         refreshAuth,
+        fetchMember,
       }}
     >
       {children}
