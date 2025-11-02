@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
-import { API_ENDPOINTS } from "@/api/endpoints";
-import { apiClient } from "@/api/api";
-import { logger } from "@/utils/logger";
+import { useTasks } from "@/hooks/useTasks";
 
 export function meta() {
   return [
@@ -279,51 +277,30 @@ function Calendar({ storyRecords, currentDate, onMonthChange }: CalendarProps) {
 
 export default function Records() {
   const { accessToken } = useAuth();
-  const [storyRecords, setStoryRecords] = useState<StoryRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { dailyStats, isDailyStatsLoading, fetchDailyStats } = useTasks({
+    accessToken,
+  });
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // 스토리 기록 데이터 조회
   useEffect(() => {
-    const fetchStoryRecords = async () => {
-      if (!accessToken) {
-        // 로그인하지 않은 경우 샘플 데이터 사용
-        setStoryRecords(generateSampleRecords());
-        return;
-      }
+    if (!accessToken) {
+      // 로그인하지 않은 경우는 샘플 데이터 사용
+      return;
+    }
 
-      // 로그인한 경우 API로 데이터 조회
-      setIsLoading(true);
-      try {
-        const { startDate, endDate } = getCalendarDateRange(currentMonth);
-        const url = `${API_ENDPOINTS.TASKS.DAILY_STATS}?startDate=${startDate}&endDate=${endDate}`;
+    // 로그인한 경우 API로 데이터 조회
+    const { startDate, endDate } = getCalendarDateRange(currentMonth);
+    fetchDailyStats(startDate, endDate);
+  }, [accessToken, currentMonth, fetchDailyStats]);
 
-        const response = await apiClient.get(url, { token: accessToken });
-
-        if (response.ok) {
-          const data = await response.json();
-          // API 응답 데이터를 StoryRecord 형식으로 변환
-          const records: StoryRecord[] = data.map(
-            (item: { date: string; count: number }) => ({
-              date: item.date,
-              storyCount: item.count,
-            })
-          );
-          setStoryRecords(records);
-        } else {
-          logger.error("스토리 기록 조회 실패");
-          setStoryRecords([]);
-        }
-      } catch (error) {
-        logger.error("스토리 기록 조회 오류:", error);
-        setStoryRecords([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStoryRecords();
-  }, [accessToken, currentMonth]);
+  // storyRecords 생성: 로그인 여부에 따라 샘플 또는 실제 데이터 사용
+  const storyRecords: StoryRecord[] = accessToken
+    ? dailyStats.map((item) => ({
+        date: item.date,
+        storyCount: item.count,
+      }))
+    : generateSampleRecords();
 
   return (
     <>
@@ -346,7 +323,7 @@ export default function Records() {
                 </div>
               </div>
 
-              {isLoading ? (
+              {accessToken && isDailyStatsLoading ? (
                 <div className="card-default text-center py-8">
                   <div className="text-text-secondary dark:text-text-secondary-dark">
                     데이터를 불러오는 중...

@@ -15,6 +15,8 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  getDailyStats,
+  type DailyStatsResponse,
 } from "@/api/tasks";
 import { logger } from "@/utils/logger";
 
@@ -33,6 +35,10 @@ interface UseTasksReturn {
   removeTask: (id: string) => Promise<void>;
   toggleTaskStatus: (id: string) => Promise<void>;
   clearError: () => void;
+  // 일별 통계 관련
+  dailyStats: DailyStatsResponse[];
+  isDailyStatsLoading: boolean;
+  fetchDailyStats: (startDate: string, endDate: string) => Promise<void>;
 }
 
 export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
@@ -40,6 +46,10 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 일별 통계 관련 상태
+  const [dailyStats, setDailyStats] = useState<DailyStatsResponse[]>([]);
+  const [isDailyStatsLoading, setIsDailyStatsLoading] = useState(false);
 
   // 태스크 목록 조회
   const fetchTasks = useCallback(async () => {
@@ -183,6 +193,31 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
     [accessToken, tasks],
   );
 
+  // 일별 통계 조회
+  const fetchDailyStats = useCallback(
+    async (startDate: string, endDate: string) => {
+      if (!accessToken) {
+        setDailyStats([]);
+        return;
+      }
+
+      setIsDailyStatsLoading(true);
+      setError(null);
+
+      try {
+        const data = await getDailyStats(startDate, endDate, accessToken);
+        setDailyStats(data);
+      } catch (err) {
+        logger.error("Failed to fetch daily stats:", err);
+        setError("일별 통계를 불러오는데 실패했습니다.");
+        setDailyStats([]);
+      } finally {
+        setIsDailyStatsLoading(false);
+      }
+    },
+    [accessToken],
+  );
+
   // 에러 초기화
   const clearError = useCallback(() => {
     setError(null);
@@ -204,5 +239,9 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
     removeTask,
     toggleTaskStatus,
     clearError,
+    // 일별 통계 관련
+    dailyStats,
+    isDailyStatsLoading,
+    fetchDailyStats,
   };
 }

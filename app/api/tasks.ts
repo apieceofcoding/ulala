@@ -167,3 +167,46 @@ export async function deleteTask(id: string, token: string): Promise<void> {
     throw error;
   }
 }
+
+/**
+ * 일별 태스크 통계 응답 타입
+ */
+export interface DailyStatsResponse {
+  date: string; // YYYY-MM-DD 형식
+  count: number; // 해당 날짜의 태스크 수
+}
+
+/**
+ * 일별 태스크 통계 조회
+ * @param startDate - 시작 날짜 (YYYY-MM-DD)
+ * @param endDate - 종료 날짜 (YYYY-MM-DD)
+ * @param token - 인증 토큰
+ * @returns 일별 태스크 통계 목록
+ */
+export async function getDailyStats(
+  startDate: string,
+  endDate: string,
+  token: string,
+): Promise<DailyStatsResponse[]> {
+  try {
+    const url = `${API_ENDPOINTS.TASKS.DAILY_STATS}?startDate=${startDate}&endDate=${endDate}`;
+    const response = await apiClient.get(url, {
+      token,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new ApiError(
+        response.status,
+        response.statusText,
+        "일별 태스크 통계를 불러오는데 실패했습니다.",
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    logger.error("Failed to fetch daily stats:", error);
+    throw error;
+  }
+}
