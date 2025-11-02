@@ -53,6 +53,8 @@ export const TASK_ENDPOINTS = {
   DAILY_STATS: "/api/tasks/daily-stats",
   /** 최근 활동 조회 */
   RECENT: "/api/tasks/recent",
+  /** 주간 태스크 통계 조회 */
+  WEEKLY_STATS: "/api/tasks/weekly-stats",
 } as const;
 
 /**

@@ -293,6 +293,9 @@ export default function Records() {
     recentTasks,
     isRecentTasksLoading,
     fetchRecentTasks,
+    weeklyStats,
+    isWeeklyStatsLoading,
+    fetchWeeklyStats,
   } = useTasks({
     accessToken,
   });
@@ -322,6 +325,15 @@ export default function Records() {
 
     fetchRecentTasks();
   }, [accessToken, fetchRecentTasks]);
+
+  // 주간 통계 조회
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    fetchWeeklyStats();
+  }, [accessToken, fetchWeeklyStats]);
 
   // storyRecords 생성: 로그인 여부에 따라 샘플 또는 실제 데이터 사용
   const storyRecords: StoryRecord[] = accessToken
@@ -436,24 +448,36 @@ export default function Records() {
 
               <div className="card-default">
                 <h3 className="heading-secondary mb-2">주간 통계</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-secondary">
-                      24
+                {accessToken && isWeeklyStatsLoading ? (
+                  <div className="text-center py-4 text-text-secondary dark:text-text-secondary-dark">
+                    데이터를 불러오는 중...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-secondary">
+                        {accessToken && weeklyStats ? weeklyStats.totalCount : 24}
+                      </div>
+                      <div className="caption-text">총 스토리</div>
                     </div>
-                    <div className="caption-text">총 할 일</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-success">18</div>
-                    <div className="caption-text">완료</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-primary">
-                      75%
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-success">
+                        {accessToken && weeklyStats ? weeklyStats.completedCount : 18}
+                      </div>
+                      <div className="caption-text">완료</div>
                     </div>
-                    <div className="caption-text">달성률</div>
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-primary">
+                        {accessToken && weeklyStats
+                          ? weeklyStats.totalCount > 0
+                            ? Math.round((weeklyStats.completedCount / weeklyStats.totalCount) * 100)
+                            : 0
+                          : 75}%
+                      </div>
+                      <div className="caption-text">달성률</div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

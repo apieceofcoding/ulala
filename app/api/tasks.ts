@@ -240,3 +240,41 @@ export async function getRecentTasks(
     throw error;
   }
 }
+
+/**
+ * 주간 태스크 통계 응답 타입
+ */
+export interface WeeklyStatsResponse {
+  totalCount: number; // 총 태스크 수
+  completedCount: number; // 완료된 태스크 수
+}
+
+/**
+ * 주간 태스크 통계 조회
+ * @param token - 인증 토큰
+ * @returns 주간 태스크 통계
+ */
+export async function getWeeklyStats(
+  token: string,
+): Promise<WeeklyStatsResponse> {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.TASKS.WEEKLY_STATS, {
+      token,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new ApiError(
+        response.status,
+        response.statusText,
+        "주간 태스크 통계를 불러오는데 실패했습니다.",
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    logger.error("Failed to fetch weekly stats:", error);
+    throw error;
+  }
+}

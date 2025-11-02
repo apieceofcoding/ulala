@@ -17,7 +17,9 @@ import {
   deleteTask,
   getDailyStats,
   getRecentTasks,
+  getWeeklyStats,
   type DailyStatsResponse,
+  type WeeklyStatsResponse,
 } from "@/api/tasks";
 import { logger } from "@/utils/logger";
 
@@ -44,6 +46,10 @@ interface UseTasksReturn {
   recentTasks: TaskResponse[];
   isRecentTasksLoading: boolean;
   fetchRecentTasks: () => Promise<void>;
+  // 주간 통계 관련
+  weeklyStats: WeeklyStatsResponse | null;
+  isWeeklyStatsLoading: boolean;
+  fetchWeeklyStats: () => Promise<void>;
 }
 
 export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
@@ -59,6 +65,12 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
   // 최근 활동 관련 상태
   const [recentTasks, setRecentTasks] = useState<TaskResponse[]>([]);
   const [isRecentTasksLoading, setIsRecentTasksLoading] = useState(false);
+
+  // 주간 통계 관련 상태
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStatsResponse | null>(
+    null
+  );
+  const [isWeeklyStatsLoading, setIsWeeklyStatsLoading] = useState(false);
 
   // 태스크 목록 조회
   const fetchTasks = useCallback(async () => {
@@ -103,7 +115,7 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
         setIsCreating(false);
       }
     },
-    [accessToken],
+    [accessToken]
   );
 
   // 태스크 수정
@@ -119,25 +131,25 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
 
       // 낙관적 업데이트
       setTasks((prev) =>
-        prev.map((task) => (task.id === id ? { ...task, ...data } : task)),
+        prev.map((task) => (task.id === id ? { ...task, ...data } : task))
       );
 
       try {
         const updatedTask = await updateTask(id, data, accessToken);
         setTasks((prev) =>
-          prev.map((task) => (task.id === id ? updatedTask : task)),
+          prev.map((task) => (task.id === id ? updatedTask : task))
         );
       } catch (err) {
         logger.error("Failed to update task:", err);
         // 롤백
         setTasks((prev) =>
-          prev.map((task) => (task.id === id ? originalTask : task)),
+          prev.map((task) => (task.id === id ? originalTask : task))
         );
         setError("태스크 수정에 실패했습니다.");
         throw err;
       }
     },
-    [accessToken, tasks],
+    [accessToken, tasks]
   );
 
   // 태스크 삭제
@@ -164,7 +176,7 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
         throw err;
       }
     },
-    [accessToken, tasks],
+    [accessToken, tasks]
   );
 
   // 태스크 상태 토글 (완료/미완료)
@@ -184,7 +196,7 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
 
       // 낙관적 업데이트
       setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t)),
+        prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t))
       );
 
       try {
@@ -193,13 +205,13 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
         logger.error("Failed to toggle task status:", err);
         // 롤백
         setTasks((prev) =>
-          prev.map((t) => (t.id === id ? { ...t, status: task.status } : t)),
+          prev.map((t) => (t.id === id ? { ...t, status: task.status } : t))
         );
         setError("태스크 상태 업데이트에 실패했습니다.");
         throw err;
       }
     },
-    [accessToken, tasks],
+    [accessToken, tasks]
   );
 
   // 일별 통계 조회
@@ -224,7 +236,7 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
         setIsDailyStatsLoading(false);
       }
     },
-    [accessToken],
+    [accessToken]
   );
 
   // 최근 활동 조회
@@ -246,6 +258,28 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
       setRecentTasks([]);
     } finally {
       setIsRecentTasksLoading(false);
+    }
+  }, [accessToken]);
+
+  // 주간 통계 조회
+  const fetchWeeklyStats = useCallback(async () => {
+    if (!accessToken) {
+      setWeeklyStats(null);
+      return;
+    }
+
+    setIsWeeklyStatsLoading(true);
+    setError(null);
+
+    try {
+      const data = await getWeeklyStats(accessToken);
+      setWeeklyStats(data);
+    } catch (err) {
+      logger.error("Failed to fetch weekly stats:", err);
+      setError("주간 통계를 불러오는데 실패했습니다.");
+      setWeeklyStats(null);
+    } finally {
+      setIsWeeklyStatsLoading(false);
     }
   }, [accessToken]);
 
@@ -278,5 +312,9 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
     recentTasks,
     isRecentTasksLoading,
     fetchRecentTasks,
+    // 주간 통계 관련
+    weeklyStats,
+    isWeeklyStatsLoading,
+    fetchWeeklyStats,
   };
 }
