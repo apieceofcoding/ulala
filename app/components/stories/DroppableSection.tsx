@@ -58,7 +58,7 @@ export function DroppableSection({
       {!collapsed && (
         <div
           ref={setNodeRef}
-          className={`bg-bg-secondary dark:bg-bg-secondary-dark p-4 rounded-lg space-y-3 min-h-[100px] transition-colors ${
+          className={`bg-bg-secondary dark:bg-bg-secondary-dark px-2 py-4 rounded-lg space-y-3 min-h-[100px] transition-colors ${
             isOver ? "bg-primary/10 border-2 border-dashed border-primary" : ""
           }`}
         >

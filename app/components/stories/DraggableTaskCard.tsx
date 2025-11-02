@@ -22,7 +22,7 @@ export function DraggableTaskCard({ task, onToggle, onClick }: DraggableTaskCard
     : undefined;
 
   const getCardClass = () => {
-    const baseClass = "card-default p-4 transition-all";
+    const baseClass = "card-default px-3 py-3 transition-all";
     if (task.status === TaskStatus.IN_PROGRESS) {
       return `${baseClass} border-l-4 border-primary`;
     }
@@ -70,7 +70,7 @@ export function DraggableTaskCard({ task, onToggle, onClick }: DraggableTaskCard
           )}
         </button>
         <div
-          className="flex-1 cursor-pointer"
+          className="flex-1 cursor-pointer min-w-0"
           onClick={() => onClick(task)}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -82,11 +82,11 @@ export function DraggableTaskCard({ task, onToggle, onClick }: DraggableTaskCard
           tabIndex={0}
         >
           <h3
-            className={`font-medium ${task.status === TaskStatus.DONE ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
+            className={`font-medium truncate ${task.status === TaskStatus.DONE ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
           >
             {task.title}
           </h3>
-          {task.description && <p className="caption-text">{task.description}</p>}
+          {task.description && <p className="caption-text truncate">{task.description}</p>}
         </div>
 
         {/* 드래그 핸들 - 오른쪽에 배치 */}

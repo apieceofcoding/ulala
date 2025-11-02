@@ -117,15 +117,15 @@ export function TaskKanbanBoard({
       {/* 드래그 오버레이 */}
       <DragOverlay>
         {activeTask ? (
-          <div className="card-default p-4 shadow-high rotate-3">
+          <div className="card-default px-3 py-3 shadow-high rotate-3">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded border-2 border-border-light dark:border-border-dark" />
-              <div className="flex-1">
-                <h3 className="font-medium text-text-primary dark:text-text-primary-dark">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-text-primary dark:text-text-primary-dark truncate">
                   {activeTask.title}
                 </h3>
                 {activeTask.description && (
-                  <p className="caption-text">{activeTask.description}</p>
+                  <p className="caption-text truncate">{activeTask.description}</p>
                 )}
               </div>
               {/* 드래그 핸들 - 오른쪽에 배치 */}
