@@ -10,7 +10,7 @@ interface TopBarProps {
 
 export function TopBar({ level = 1, onSettingsClick, className = "" }: TopBarProps) {
   return (
-    <div className={`bg-bg-primary shadow-low ${className}`}>
+    <div className={`fixed top-0 left-0 right-0 bg-bg-primary shadow-low z-50 ${className}`}>
       <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
         <div className="flex items-center justify-between h-14 px-2 md:px-4">
         {/* 왼쪽: 로고 */}

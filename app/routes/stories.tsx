@@ -291,7 +291,7 @@ export default function Stories() {
   return (
     <>
       <TopBar level={1} onSettingsClick={() => logger.log("메뉴 버튼 클릭")} />
-      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark px-0 py-1 pb-16">
+      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark px-0 pt-14 pb-16 md:pb-1 md:pl-64">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 에러 메시지 */}
           {error && <ErrorAlert message={error} onClose={clearError} />}

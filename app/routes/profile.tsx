@@ -150,7 +150,7 @@ export default function Profile() {
         level={level}
         onSettingsClick={() => logger.log("메뉴 버튼 클릭")}
       />
-      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
+      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pt-14 pb-16 md:pb-1 md:pl-64">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 로그인 전 상태 */}
           {!member && (

@@ -170,23 +170,23 @@ const tabs: Tab[] = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-bg-primary dark:bg-bg-primary-dark z-50 shadow-high">
-      <div className="mx-auto max-w-none lg:max-w-6xl xl:max-w-6xl">
-        <div className="flex">
+    <nav className="fixed bottom-0 left-0 right-0 md:top-14 md:bottom-0 md:right-auto md:w-64 bg-bg-primary dark:bg-bg-primary-dark z-40 shadow-high">
+      <div className="mx-auto max-w-none">
+        <div className="flex md:flex-col md:h-full md:py-6">
           {tabs.map((tab) => (
             <NavLink
               key={tab.path}
               to={tab.path}
               className={({ isActive }) =>
-                `flex-1 flex flex-col items-center py-2 min-h-[44px] transition-colors duration-150 ${
+                `flex-1 md:flex-none flex flex-col md:flex-row items-center md:items-center md:gap-3 py-2 md:px-6 md:py-4 min-h-[44px] transition-colors duration-150 ${
                   isActive
                     ? "text-primary font-semibold bg-bg-secondary dark:bg-bg-secondary-dark"
                     : "text-text-tertiary dark:text-text-tertiary-dark font-normal hover:text-text-secondary dark:hover:text-text-secondary-dark"
                 }`
               }
             >
-              <tab.icon className="w-5 h-5 mb-1" />
-              <span className="text-xs">
+              <tab.icon className="w-5 h-5 mb-1 md:mb-0" />
+              <span className="text-xs md:text-base">
                 {tab.label}
               </span>
             </NavLink>

@@ -304,7 +304,7 @@ export default function ProfileEdit() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-4 pb-16">
+    <div className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-4 pt-14 pb-16 md:pb-4 md:pl-64">
       <div className="container max-w-lg mx-auto space-y-6">
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-6">

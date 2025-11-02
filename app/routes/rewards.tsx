@@ -129,7 +129,7 @@ export default function Rewards() {
   return (
     <>
       <TopBar level={1} onSettingsClick={() => logger.log("메뉴 버튼 클릭")} />
-      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pb-16">
+      <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pt-14 pb-16 md:pb-1 md:pl-64">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 헤더 및 총 포인트 */}
           <div className="card-default text-center space-y-4">
