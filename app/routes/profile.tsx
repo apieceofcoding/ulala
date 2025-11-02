@@ -6,6 +6,7 @@ import kakaoLoginImage from "@/assets/images/kakao_login_large_narrow.png";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { apiClient } from "@/api/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [

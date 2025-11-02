@@ -210,3 +210,33 @@ export async function getDailyStats(
     throw error;
   }
 }
+
+/**
+ * 최근 활동 조회
+ * @param token - 인증 토큰
+ * @returns 최근 태스크 목록
+ */
+export async function getRecentTasks(
+  token: string,
+): Promise<TaskResponse[]> {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.TASKS.RECENT, {
+      token,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new ApiError(
+        response.status,
+        response.statusText,
+        "최근 활동을 불러오는데 실패했습니다.",
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    logger.error("Failed to fetch recent tasks:", error);
+    throw error;
+  }
+}

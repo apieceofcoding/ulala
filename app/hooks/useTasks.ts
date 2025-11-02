@@ -16,6 +16,7 @@ import {
   updateTask,
   deleteTask,
   getDailyStats,
+  getRecentTasks,
   type DailyStatsResponse,
 } from "@/api/tasks";
 import { logger } from "@/utils/logger";
@@ -39,6 +40,10 @@ interface UseTasksReturn {
   dailyStats: DailyStatsResponse[];
   isDailyStatsLoading: boolean;
   fetchDailyStats: (startDate: string, endDate: string) => Promise<void>;
+  // 최근 활동 관련
+  recentTasks: TaskResponse[];
+  isRecentTasksLoading: boolean;
+  fetchRecentTasks: () => Promise<void>;
 }
 
 export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
@@ -50,6 +55,10 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
   // 일별 통계 관련 상태
   const [dailyStats, setDailyStats] = useState<DailyStatsResponse[]>([]);
   const [isDailyStatsLoading, setIsDailyStatsLoading] = useState(false);
+
+  // 최근 활동 관련 상태
+  const [recentTasks, setRecentTasks] = useState<TaskResponse[]>([]);
+  const [isRecentTasksLoading, setIsRecentTasksLoading] = useState(false);
 
   // 태스크 목록 조회
   const fetchTasks = useCallback(async () => {
@@ -218,6 +227,28 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
     [accessToken],
   );
 
+  // 최근 활동 조회
+  const fetchRecentTasks = useCallback(async () => {
+    if (!accessToken) {
+      setRecentTasks([]);
+      return;
+    }
+
+    setIsRecentTasksLoading(true);
+    setError(null);
+
+    try {
+      const data = await getRecentTasks(accessToken);
+      setRecentTasks(data);
+    } catch (err) {
+      logger.error("Failed to fetch recent tasks:", err);
+      setError("최근 활동을 불러오는데 실패했습니다.");
+      setRecentTasks([]);
+    } finally {
+      setIsRecentTasksLoading(false);
+    }
+  }, [accessToken]);
+
   // 에러 초기화
   const clearError = useCallback(() => {
     setError(null);
@@ -243,5 +274,9 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
     dailyStats,
     isDailyStatsLoading,
     fetchDailyStats,
+    // 최근 활동 관련
+    recentTasks,
+    isRecentTasksLoading,
+    fetchRecentTasks,
   };
 }

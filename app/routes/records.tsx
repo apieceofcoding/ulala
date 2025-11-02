@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks } from "@/hooks/useTasks";
+import { TaskStatus } from "@/types/task";
 
 export function meta() {
   return [
@@ -277,10 +278,21 @@ function Calendar({ storyRecords, currentDate, onMonthChange }: CalendarProps) {
 
 export default function Records() {
   const { accessToken } = useAuth();
-  const { dailyStats, isDailyStatsLoading, fetchDailyStats } = useTasks({
+  const {
+    dailyStats,
+    isDailyStatsLoading,
+    fetchDailyStats,
+    recentTasks,
+    isRecentTasksLoading,
+    fetchRecentTasks,
+  } = useTasks({
     accessToken,
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [todayStoryCount, setTodayStoryCount] = useState(0);
+
+  // 샘플 데이터는 한번만 생성 (비로그인 상태용)
+  const sampleRecords = useMemo(() => generateSampleRecords(), []);
 
   // 스토리 기록 데이터 조회
   useEffect(() => {
@@ -294,19 +306,40 @@ export default function Records() {
     fetchDailyStats(startDate, endDate);
   }, [accessToken, currentMonth, fetchDailyStats]);
 
+  // 최근 활동 조회
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    fetchRecentTasks();
+  }, [accessToken, fetchRecentTasks]);
+
   // storyRecords 생성: 로그인 여부에 따라 샘플 또는 실제 데이터 사용
   const storyRecords: StoryRecord[] = accessToken
     ? dailyStats.map((item) => ({
         date: item.date,
         storyCount: item.count,
       }))
-    : generateSampleRecords();
+    : sampleRecords;
 
-  // 오늘의 스토리 수 계산
-  const todayDateString = new Date().toISOString().split("T")[0];
-  const todayStoryCount =
-    storyRecords.find((record) => record.date === todayDateString)
-      ?.storyCount || 0;
+  // 오늘의 스토리 수 저장 (오늘 데이터가 포함된 경우에만 업데이트)
+  useEffect(() => {
+    const todayDateString = new Date().toISOString().split("T")[0];
+    const todayRecord = storyRecords.find(
+      (record) => record.date === todayDateString
+    );
+
+    // 오늘 데이터가 있으면 저장 (로그인/비로그인 모두)
+    if (todayRecord) {
+      setTodayStoryCount(todayRecord.storyCount);
+    }
+    // 비로그인 상태에서 오늘 데이터가 없으면 0으로 설정
+    else if (!accessToken) {
+      setTodayStoryCount(0);
+    }
+    // 로그인 상태에서 오늘 데이터가 없으면 기존 값 유지 (업데이트 안함)
+  }, [storyRecords, accessToken]);
 
   return (
     <>
@@ -347,20 +380,50 @@ export default function Records() {
 
               <div className="card-default">
                 <h3 className="heading-secondary mb-2">최근 활동</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="body-text-small">30분 산책하기</span>
-                    <span className="caption-text text-success">완료</span>
+                {accessToken && isRecentTasksLoading ? (
+                  <div className="text-center py-4 text-text-secondary dark:text-text-secondary-dark">
+                    데이터를 불러오는 중...
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="body-text-small">물 8잔 마시기</span>
-                    <span className="caption-text text-success">완료</span>
+                ) : !accessToken || recentTasks.length === 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="body-text-small">30분 산책하기</span>
+                      <span className="caption-text text-success">완료</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="body-text-small">물 8잔 마시기</span>
+                      <span className="caption-text text-success">완료</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="body-text-small">책 30페이지 읽기</span>
+                      <span className="caption-text text-warning">진행중</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="body-text-small">책 30페이지 읽기</span>
-                    <span className="caption-text text-warning">진행중</span>
+                ) : (
+                  <div className="space-y-3">
+                    {recentTasks.map((task) => {
+                      const getStatusText = (status: TaskStatus) => {
+                        if (status === TaskStatus.DONE) return "완료";
+                        if (status === TaskStatus.IN_PROGRESS) return "진행중";
+                        return "대기중";
+                      };
+                      const getStatusColor = (status: TaskStatus) => {
+                        if (status === TaskStatus.DONE) return "text-success";
+                        if (status === TaskStatus.IN_PROGRESS) return "text-warning";
+                        return "text-text-secondary dark:text-text-secondary-dark";
+                      };
+
+                      return (
+                        <div key={task.id} className="flex items-center justify-between">
+                          <span className="body-text-small">{task.title}</span>
+                          <span className={`caption-text ${getStatusColor(task.status)}`}>
+                            {getStatusText(task.status)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="card-default">
