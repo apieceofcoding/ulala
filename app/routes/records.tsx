@@ -42,6 +42,14 @@ function generateSampleRecords(): StoryRecord[] {
   return records;
 }
 
+// 로컬 날짜를 YYYY-MM-DD 형식의 문자열로 변환하는 함수
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // 달력 표시 범위의 시작일과 종료일을 계산하는 함수
 function getCalendarDateRange(currentDate: Date) {
   // 현재 월의 첫째 날
@@ -67,8 +75,8 @@ function getCalendarDateRange(currentDate: Date) {
   endDate.setDate(lastDay.getDate() + (7 - lastDay.getDay()));
 
   return {
-    startDate: startDate.toISOString().split("T")[0],
-    endDate: endDate.toISOString().split("T")[0],
+    startDate: formatLocalDate(startDate),
+    endDate: formatLocalDate(endDate),
   };
 }
 
@@ -118,7 +126,7 @@ function Calendar({ storyRecords, currentDate, onMonthChange }: CalendarProps) {
     const days = [];
     for (let day = 0; day < 7; day++) {
       const date = new Date(currentWeekDate);
-      const dateString = date.toISOString().split("T")[0];
+      const dateString = formatLocalDate(date);
       const isCurrentMonth = date.getMonth() === currentDate.getMonth();
       const recordData = storyRecords.find((item) => item.date === dateString);
       const storyCount = recordData?.storyCount || 0;
@@ -128,7 +136,7 @@ function Calendar({ storyRecords, currentDate, onMonthChange }: CalendarProps) {
         fullDate: dateString,
         isCurrentMonth,
         storyCount,
-        isToday: dateString === new Date().toISOString().split("T")[0],
+        isToday: dateString === formatLocalDate(new Date()),
       });
 
       currentWeekDate.setDate(currentWeekDate.getDate() + 1);
@@ -325,7 +333,7 @@ export default function Records() {
 
   // 오늘의 스토리 수 저장 (오늘 데이터가 포함된 경우에만 업데이트)
   useEffect(() => {
-    const todayDateString = new Date().toISOString().split("T")[0];
+    const todayDateString = formatLocalDate(new Date());
     const todayRecord = storyRecords.find(
       (record) => record.date === todayDateString
     );
