@@ -1,4 +1,15 @@
 import { useState } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { logger } from "@/utils/logger";
@@ -28,6 +39,173 @@ const sampleTasks: SampleTask[] = [
   { title: "스마트폰 사용시간 줄이기", description: "SNS 사용 1시간 이내로" },
 ];
 
+// 드래그 가능한 태스크 카드 컴포넌트
+interface DraggableTaskCardProps {
+  task: TaskResponse;
+  onToggle: (id: string) => void;
+  onClick: (task: TaskResponse) => void;
+}
+
+function DraggableTaskCard({ task, onToggle, onClick }: DraggableTaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: task.id,
+    });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.5 : 1,
+      }
+    : undefined;
+
+  const getCardClass = () => {
+    const baseClass = "card-default p-4 transition-all";
+    if (task.status === TaskStatus.IN_PROGRESS) {
+      return `${baseClass} border-l-4 border-primary`;
+    }
+    if (task.status === TaskStatus.DONE) {
+      return `${baseClass} opacity-60`;
+    }
+    return baseClass;
+  };
+
+  const getCheckboxClass = () => {
+    if (task.status === TaskStatus.DONE) {
+      return "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 bg-primary border-primary";
+    }
+    if (task.status === TaskStatus.IN_PROGRESS) {
+      return "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 border-primary bg-primary/10";
+    }
+    return "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 border-border-light dark:border-border-dark hover:border-primary";
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className={getCardClass()}>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(task.id);
+          }}
+          className={getCheckboxClass()}
+        >
+          {task.status === TaskStatus.DONE && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M2 6L5 9L10 3"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+          {task.status === TaskStatus.IN_PROGRESS && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-primary">
+              <circle cx="6" cy="6" r="3" fill="currentColor" />
+            </svg>
+          )}
+        </button>
+        <div
+          className="flex-1 cursor-pointer"
+          onClick={() => onClick(task)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick(task);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <h3
+            className={`font-medium ${task.status === TaskStatus.DONE ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
+          >
+            {task.title}
+          </h3>
+          {task.description && <p className="caption-text">{task.description}</p>}
+        </div>
+
+        {/* 드래그 핸들 - 오른쪽에 배치 */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none text-text-tertiary dark:text-text-tertiary-dark hover:text-text-secondary dark:hover:text-text-secondary-dark"
+          aria-label="드래그하여 이동"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="flex-shrink-0"
+          >
+            <circle cx="7" cy="5" r="1.5" fill="currentColor" />
+            <circle cx="13" cy="5" r="1.5" fill="currentColor" />
+            <circle cx="7" cy="10" r="1.5" fill="currentColor" />
+            <circle cx="13" cy="10" r="1.5" fill="currentColor" />
+            <circle cx="7" cy="15" r="1.5" fill="currentColor" />
+            <circle cx="13" cy="15" r="1.5" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 드롭 가능한 섹션 컴포넌트
+interface DroppableSectionProps {
+  id: TaskStatus;
+  title: string;
+  tasks: TaskResponse[];
+  emptyMessage: string;
+  onToggle: (id: string) => void;
+  onClick: (task: TaskResponse) => void;
+}
+
+function DroppableSection({
+  id,
+  title,
+  tasks,
+  emptyMessage,
+  onToggle,
+  onClick,
+}: DroppableSectionProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: id,
+  });
+
+  return (
+    <section className="space-y-3" aria-label={title}>
+      <h2 className="heading-secondary flex items-center gap-2">
+        {title} <span className="caption-text">({tasks.length})</span>
+      </h2>
+      <div
+        ref={setNodeRef}
+        className={`bg-bg-secondary dark:bg-bg-secondary-dark p-4 rounded-lg space-y-3 min-h-[100px] transition-colors ${
+          isOver ? "bg-primary/10 border-2 border-dashed border-primary" : ""
+        }`}
+      >
+        {tasks.length === 0 ? (
+          <p className="body-text-small text-text-tertiary dark:text-text-tertiary-dark text-center py-4">
+            {emptyMessage}
+          </p>
+        ) : (
+          tasks.map((task) => (
+            <DraggableTaskCard
+              key={task.id}
+              task={task}
+              onToggle={onToggle}
+              onClick={onClick}
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function Stories() {
   const { accessToken } = useAuth();
   const {
@@ -37,7 +215,6 @@ export default function Stories() {
     error,
     addTask,
     editTask,
-    toggleTaskStatus,
     removeTask,
     clearError,
   } = useTasks({ accessToken });
@@ -53,6 +230,16 @@ export default function Stories() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [activeTask, setActiveTask] = useState<TaskResponse | null>(null);
+
+  // 드래그 센서 설정 (터치 및 마우스 지원)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px 이동 후 드래그 시작 (실수 방지)
+      },
+    })
+  );
 
   const handleShowRecommendations = () => {
     setIsLoadingRecommendations(true);
@@ -150,16 +337,23 @@ export default function Stories() {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
-    const wasCompleted = task.status === TaskStatus.DONE;
-    const newStatus = wasCompleted ? TaskStatus.TODO : TaskStatus.DONE;
+    // 순환 방식: TODO → IN_PROGRESS → DONE → TODO
+    let newStatus: TaskStatus;
+    if (task.status === TaskStatus.TODO) {
+      newStatus = TaskStatus.IN_PROGRESS;
+    } else if (task.status === TaskStatus.IN_PROGRESS) {
+      newStatus = TaskStatus.DONE;
+    } else {
+      newStatus = TaskStatus.TODO;
+    }
 
     // 완료 시 보상 생성
-    if (!wasCompleted) {
+    if (newStatus === TaskStatus.DONE) {
       generateReward(task);
     }
 
     try {
-      await toggleTaskStatus(id);
+      await editTask(id, { status: newStatus });
 
       // selectedTask가 현재 토글하는 task라면 업데이트
       if (selectedTask && selectedTask.id === id) {
@@ -218,6 +412,50 @@ export default function Stories() {
     setIsEditMode(false);
     setEditTitle("");
     setEditDescription("");
+  };
+
+  // 드래그 시작
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const task = tasks.find((t) => t.id === active.id);
+    if (task) {
+      setActiveTask(task);
+    }
+  };
+
+  // 드래그 종료
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    setActiveTask(null);
+
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const newStatus = over.id as TaskStatus;
+
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task || task.status === newStatus) return;
+
+    // 완료로 변경 시 보상 생성
+    if (newStatus === TaskStatus.DONE) {
+      generateReward(task);
+    }
+
+    try {
+      await editTask(taskId, { status: newStatus });
+
+      // selectedTask가 현재 변경하는 task라면 업데이트
+      if (selectedTask && selectedTask.id === taskId) {
+        setSelectedTask({
+          ...selectedTask,
+          status: newStatus,
+          endAt: newStatus === TaskStatus.DONE ? new Date().toISOString() : null,
+        });
+      }
+    } catch {
+      // 에러는 useTasks에서 처리
+    }
   };
 
   return (
@@ -433,12 +671,17 @@ export default function Stories() {
             </div>
           )}
 
-          {/* 할 일 목록 */}
+          {/* 할 일 목록 - 칸반 레이아웃 */}
           {tasks.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="heading-secondary">오늘의 할 일</h2>
-                <div className="flex gap-4">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="space-y-6">
+                {/* 상단 액션 버튼 */}
+                <div className="flex items-center justify-end gap-4">
                   <button
                     onClick={handleShowRecommendations}
                     className="text-sm text-primary hover:text-primary-hover"
@@ -452,72 +695,83 @@ export default function Stories() {
                     직접 추가
                   </button>
                 </div>
+
+                {/* 할일 섹션 */}
+                <DroppableSection
+                  id={TaskStatus.TODO}
+                  title="할일"
+                  tasks={tasks.filter((t) => t.status === TaskStatus.TODO)}
+                  emptyMessage="할 일이 없습니다"
+                  onToggle={handleToggleTask}
+                  onClick={setSelectedTask}
+                />
+
+                {/* 진행중 섹션 */}
+                <DroppableSection
+                  id={TaskStatus.IN_PROGRESS}
+                  title="진행중"
+                  tasks={tasks.filter((t) => t.status === TaskStatus.IN_PROGRESS)}
+                  emptyMessage="진행 중인 태스크가 없습니다"
+                  onToggle={handleToggleTask}
+                  onClick={setSelectedTask}
+                />
+
+                {/* 완료 섹션 */}
+                <DroppableSection
+                  id={TaskStatus.DONE}
+                  title="완료"
+                  tasks={tasks.filter((t) => t.status === TaskStatus.DONE)}
+                  emptyMessage="완료된 태스크가 없습니다"
+                  onToggle={handleToggleTask}
+                  onClick={setSelectedTask}
+                />
+
+                {/* 전체 통계 */}
+                <div className="text-center">
+                  <p className="caption-text">
+                    전체: {tasks.length} | 완료:{" "}
+                    {tasks.filter((t) => t.status === TaskStatus.DONE).length}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-3">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`card-default p-4 ${task.status === TaskStatus.DONE ? "opacity-60" : ""}`}
-                  >
+
+              {/* 드래그 오버레이 */}
+              <DragOverlay>
+                {activeTask ? (
+                  <div className="card-default p-4 shadow-high rotate-3">
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleToggleTask(task.id)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                          task.status === TaskStatus.DONE
-                            ? "bg-primary border-primary"
-                            : "border-border-light dark:border-border-dark hover:border-primary"
-                        }`}
-                      >
-                        {task.status === TaskStatus.DONE && (
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M2 6L5 9L10 3"
-                              stroke="white"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                      <div
-                        className="flex-1 cursor-pointer"
-                        onClick={() => setSelectedTask(task)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedTask(task);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <h3
-                          className={`font-medium ${task.status === TaskStatus.DONE ? "line-through text-text-tertiary dark:text-text-tertiary-dark" : "text-text-primary dark:text-text-primary-dark"}`}
-                        >
-                          {task.title}
+                      <div className="w-5 h-5 rounded border-2 border-border-light dark:border-border-dark" />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-text-primary dark:text-text-primary-dark">
+                          {activeTask.title}
                         </h3>
-                        {task.description && (
-                          <p className="caption-text">{task.description}</p>
+                        {activeTask.description && (
+                          <p className="caption-text">
+                            {activeTask.description}
+                          </p>
                         )}
+                      </div>
+                      {/* 드래그 핸들 - 오른쪽에 배치 */}
+                      <div className="text-text-tertiary dark:text-text-tertiary-dark">
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                        >
+                          <circle cx="7" cy="5" r="1.5" fill="currentColor" />
+                          <circle cx="13" cy="5" r="1.5" fill="currentColor" />
+                          <circle cx="7" cy="10" r="1.5" fill="currentColor" />
+                          <circle cx="13" cy="10" r="1.5" fill="currentColor" />
+                          <circle cx="7" cy="15" r="1.5" fill="currentColor" />
+                          <circle cx="13" cy="15" r="1.5" fill="currentColor" />
+                        </svg>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="text-center">
-                <p className="caption-text">
-                  완료:{" "}
-                  {tasks.filter((t) => t.status === TaskStatus.DONE).length} /{" "}
-                  {tasks.length}
-                </p>
-              </div>
-            </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           )}
         </div>
       </main>
@@ -615,13 +869,17 @@ export default function Stories() {
                     className={`w-3 h-3 rounded-full ${
                       selectedTask.status === TaskStatus.DONE
                         ? "bg-primary"
-                        : "bg-text-tertiary dark:bg-text-tertiary-dark"
+                        : selectedTask.status === TaskStatus.IN_PROGRESS
+                          ? "bg-primary opacity-60"
+                          : "bg-text-tertiary dark:bg-text-tertiary-dark"
                     }`}
                   />
                   <p className="body-text">
                     {selectedTask.status === TaskStatus.DONE
                       ? "완료"
-                      : "진행 중"}
+                      : selectedTask.status === TaskStatus.IN_PROGRESS
+                        ? "진행중"
+                        : "할일"}
                   </p>
                 </div>
               </div>
@@ -690,9 +948,11 @@ export default function Stories() {
                   onClick={() => handleToggleTask(selectedTask.id)}
                   className="btn-secondary flex-1"
                 >
-                  {selectedTask.status === TaskStatus.DONE
-                    ? "미완료로 변경"
-                    : "완료로 변경"}
+                  {selectedTask.status === TaskStatus.TODO
+                    ? "진행중으로"
+                    : selectedTask.status === TaskStatus.IN_PROGRESS
+                      ? "완료로"
+                      : "할일로"}
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
