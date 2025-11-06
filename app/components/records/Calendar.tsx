@@ -124,7 +124,7 @@ export function Calendar({
   };
 
   return (
-    <div className="card-default">
+    <div className="card-default max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h3 className="heading-secondary">스토리 기록</h3>
         <div className="flex items-center gap-3">
