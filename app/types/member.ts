@@ -7,5 +7,8 @@ export interface Member {
   username: string;
   displayName: string | null;
   imageUrl: string | null;
-  level: string;
+  level: number;
+  point: number;
+  exp: number;
+  requiredExp: number;
 }

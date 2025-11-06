@@ -17,13 +17,10 @@ export function meta() {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { accessToken, member, setAccessToken, setMember, fetchMember } = useAuth();
+  const { accessToken, member, setAccessToken, setMember, fetchMember } =
+    useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const [totalTodos, setTotalTodos] = useState(0);
-  const [totalPoints, setTotalPoints] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [completionRate, setCompletionRate] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // accessToken이 있으면 member 정보 조회
@@ -53,31 +50,7 @@ export default function Profile() {
     if (savedNotifications) {
       setNotifications(JSON.parse(savedNotifications));
     }
-
-    // 통계 데이터 계산
-    calculateStats();
   }, []);
-
-  const calculateStats = () => {
-    // 보상 데이터에서 총 포인트 계산
-    const savedRewards = localStorage.getItem("ulala-rewards");
-    if (savedRewards) {
-      const rewards = JSON.parse(savedRewards) as Array<{ value?: number }>;
-      const points = rewards.reduce((total: number, reward) => {
-        return total + (reward.value || 0);
-      }, 0);
-      setTotalPoints(points);
-
-      // 완료한 할 일 수는 보상 수와 동일
-      setTotalTodos(rewards.length);
-    }
-
-    // 연속 달성 일수 계산 (샘플)
-    setStreak(7);
-
-    // 완료율 계산 (샘플)
-    setCompletionRate(85);
-  };
 
   const handleDarkModeToggle = () => {
     const newValue = !darkMode;
@@ -95,19 +68,6 @@ export default function Profile() {
     const newValue = !notifications;
     setNotifications(newValue);
     localStorage.setItem("ulala-notifications", JSON.stringify(newValue));
-  };
-
-  const handleResetData = () => {
-    if (
-      confirm("모든 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.")
-    ) {
-      localStorage.removeItem("ulala-rewards");
-      localStorage.removeItem("ulala-todos");
-      setTotalTodos(0);
-      setTotalPoints(0);
-      alert("데이터가 초기화되었습니다.");
-      window.location.reload();
-    }
   };
 
   const handleKakaoLogin = () => {
@@ -146,10 +106,12 @@ export default function Profile() {
     });
   };
 
-  // 레벨 계산 (10개당 1레벨)
-  const level = Math.floor(totalTodos / 10) + 1;
-  const currentLevelTodos = totalTodos % 10;
-  const experiencePercent = (currentLevelTodos / 10) * 100;
+  // API에서 받아온 데이터 사용 (로그인 전에는 기본값)
+  const level = member?.level ?? 1;
+  const point = member?.point ?? 0;
+  const exp = member?.exp ?? 0;
+  const requiredExp = member?.requiredExp ?? 100;
+  const experiencePercent = requiredExp > 0 ? (exp / requiredExp) * 100 : 0;
 
   return (
     <>
@@ -218,18 +180,18 @@ export default function Profile() {
 
                 {/* 레벨 정보 */}
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="body-text">레벨 {member.level}</span>
-                  <span className="caption-text">• {totalTodos}개 완료</span>
+                  <span className="body-text">레벨 {level}</span>
+                  <span className="caption-text">• {point} 포인트</span>
                 </div>
 
                 {/* 경험치 바 */}
                 <div className="w-full">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <span className="caption-text whitespace-nowrap">
-                      다음 레벨까지
+                      경험치
                     </span>
                     <span className="caption-text font-semibold whitespace-nowrap">
-                      {currentLevelTodos}/10
+                      {exp.toFixed(0)}/{requiredExp.toFixed(0)}
                     </span>
                   </div>
                   <div className="w-full h-2 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded-full overflow-hidden">
@@ -244,35 +206,37 @@ export default function Profile() {
           )}
 
           {/* 활동 통계 */}
-          <div className="card-default">
-            <h3 className="heading-secondary mb-4">활동 통계</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="card-default text-center">
-                <div className="text-2xl font-bold text-primary mb-1">
-                  {totalTodos}
+          {member && (
+            <div className="card-default">
+              <h3 className="heading-secondary mb-4">활동 통계</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="card-default text-center">
+                  <div className="text-2xl font-bold text-primary mb-1">
+                    {level}
+                  </div>
+                  <div className="caption-text">현재 레벨</div>
                 </div>
-                <div className="caption-text">완료한 할 일</div>
-              </div>
-              <div className="card-default text-center">
-                <div className="text-2xl font-bold text-accent mb-1">
-                  {totalPoints}
+                <div className="card-default text-center">
+                  <div className="text-2xl font-bold text-accent mb-1">
+                    {point.toFixed(0)}
+                  </div>
+                  <div className="caption-text">누적 포인트</div>
                 </div>
-                <div className="caption-text">누적 포인트</div>
-              </div>
-              <div className="card-default text-center">
-                <div className="text-2xl font-bold text-secondary mb-1">
-                  {streak}일
+                <div className="card-default text-center">
+                  <div className="text-2xl font-bold text-secondary mb-1">
+                    {exp.toFixed(0)}
+                  </div>
+                  <div className="caption-text">현재 경험치</div>
                 </div>
-                <div className="caption-text">연속 달성</div>
-              </div>
-              <div className="card-default text-center">
-                <div className="text-2xl font-bold text-success mb-1">
-                  {completionRate}%
+                <div className="card-default text-center">
+                  <div className="text-2xl font-bold text-success mb-1">
+                    {requiredExp.toFixed(0)}
+                  </div>
+                  <div className="caption-text">필요 경험치</div>
                 </div>
-                <div className="caption-text">완료율</div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* 설정 */}
           <div className="card-default">
@@ -348,14 +312,6 @@ export default function Profile() {
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* 데이터 관리 */}
-          <div className="card-default">
-            <h3 className="heading-secondary mb-4">데이터 관리</h3>
-            <button onClick={handleResetData} className="w-full btn-secondary">
-              데이터 초기화
-            </button>
           </div>
 
           {/* 앱 정보 */}
