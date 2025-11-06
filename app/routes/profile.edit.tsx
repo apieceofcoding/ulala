@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 import { apiClient } from "@/api/api";
 import type { Member } from "@/types/member";
 import { logger } from "@/utils/logger";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function meta() {
   return [
@@ -17,6 +18,7 @@ type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 export default function ProfileEdit() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { fetchMember: refreshMemberInfo } = useAuth();
 
   // profile 페이지에서 전달받은 state
   const stateFromProfile = location.state as {
@@ -253,7 +255,8 @@ export default function ProfileEdit() {
       );
 
       if (response.ok) {
-        alert("프로필이 수정되었습니다.");
+        // 저장 후 AuthContext의 member 정보를 최신으로 업데이트
+        await refreshMemberInfo();
         navigate("/profile");
       } else {
         const errorData = await response.json().catch(() => null);
