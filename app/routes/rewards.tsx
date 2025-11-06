@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
+import { useAuth } from "@/contexts/AuthContext";
+import { API_ENDPOINTS } from "@/api/endpoints";
+import { apiClient } from "@/api/api";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -9,8 +13,9 @@ export function meta() {
   ];
 }
 
+// 프론트엔드 Reward 타입
 interface Reward {
-  id: number;
+  id: string;
   title: string;
   description: string;
   earnedAt: string;
@@ -20,80 +25,157 @@ interface Reward {
   isNew?: boolean;
 }
 
-const sampleRewards: Reward[] = [
-  {
-    id: 1,
-    title: "첫 할 일 완료",
-    description: "첫 번째 할 일을 완료했습니다!",
-    earnedAt: "2025-01-24T10:30:00Z",
-    type: "badge",
-    icon: "🎯",
-    isNew: true
-  },
-  {
-    id: 2,
-    title: "건강한 하루",
-    description: "물 8잔 마시기를 완료했습니다",
-    earnedAt: "2025-01-24T09:15:00Z",
-    type: "points",
-    value: 10,
-    icon: "💧"
-  },
-  {
-    id: 3,
-    title: "운동 마스터",
-    description: "30분 산책하기를 완료했습니다",
-    earnedAt: "2025-01-23T18:45:00Z",
-    type: "points",
-    value: 15,
-    icon: "🚶‍♂️"
-  },
-  {
-    id: 4,
-    title: "학습 달성",
-    description: "책 30페이지 읽기를 완료했습니다",
-    earnedAt: "2025-01-23T14:20:00Z",
-    type: "points",
-    value: 20,
-    icon: "📚"
-  },
-  {
-    id: 5,
-    title: "연속 달성자",
-    description: "3일 연속 할 일을 완료했습니다",
-    earnedAt: "2025-01-22T23:59:00Z",
-    type: "achievement",
-    icon: "🏆"
+// 백엔드 RewardResponse 타입
+interface RewardResponse {
+  id: string;
+  memberId: string;
+  sourceId: string;
+  sourceType: "TASK" | "EVENT";
+  point: number;
+  exp: number;
+  createdAt: string | null;
+  modifiedAt: string | null;
+}
+
+// 페이지네이션 응답 타입
+interface PageResponse<T> {
+  content: T[];
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+// sourceType에 따른 아이콘 매핑
+const getIconBySourceType = (sourceType: string): string => {
+  switch (sourceType) {
+    case "TASK":
+      return "🎯";
+    case "EVENT":
+      return "🎉";
+    default:
+      return "🎁";
   }
-];
+};
+
+// 백엔드 데이터를 프론트엔드 타입으로 변환
+const transformRewardResponse = (response: RewardResponse): Reward => {
+  return {
+    id: response.id,
+    title: response.sourceType === "TASK" ? "할 일 완료" : "이벤트 달성",
+    description: `${response.point}포인트와 ${response.exp}경험치를 획득했습니다`,
+    earnedAt: response.createdAt || new Date().toISOString(),
+    type: "points",
+    value: response.point,
+    icon: getIconBySourceType(response.sourceType),
+    isNew: false,
+  };
+};
 
 export default function Rewards() {
+  const { accessToken } = useAuth();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    // 로컬 스토리지에서 보상 데이터 로드
-    const savedRewards = localStorage.getItem('ulala-rewards');
-    if (savedRewards) {
-      const parsedRewards = JSON.parse(savedRewards);
-      setRewards(parsedRewards);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-      // 총 포인트 계산
-      const points = parsedRewards.reduce((total: number, reward: Reward) => {
-        return total + (reward.value || 0);
-      }, 0);
-      setTotalPoints(points);
-    } else {
-      // 초기 샘플 데이터 설정
-      setRewards(sampleRewards);
-      localStorage.setItem('ulala-rewards', JSON.stringify(sampleRewards));
-
-      const points = sampleRewards.reduce((total, reward) => {
-        return total + (reward.value || 0);
-      }, 0);
-      setTotalPoints(points);
+  // 보상 데이터 조회 함수
+  const fetchRewards = useCallback(async (page: number = 0, isInitial: boolean = true) => {
+    // accessToken이 없으면 API 호출하지 않음
+    if (!accessToken) {
+      setLoading(false);
+      return;
     }
-  }, []);
+
+    try {
+      if (isInitial) {
+        setLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      setError(null);
+
+      const response = await apiClient.get(
+        `${API_ENDPOINTS.REWARDS.LIST}?page=${page}&size=10`,
+        { token: accessToken }
+      );
+
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status}`);
+      }
+
+      const data: PageResponse<RewardResponse> = await response.json();
+
+      // 데이터 변환
+      const transformedRewards = data.content.map(transformRewardResponse);
+
+      // 데이터 누적 또는 초기화
+      if (isInitial) {
+        setRewards(transformedRewards);
+      } else {
+        setRewards((prev) => [...prev, ...transformedRewards]);
+      }
+
+      // 페이지 정보 업데이트
+      setCurrentPage(data.page.number);
+      setHasMore(data.page.number < data.page.totalPages - 1);
+
+      // 총 포인트 계산 (전체 데이터 기준)
+      if (isInitial) {
+        const points = transformedRewards.reduce((total: number, reward: Reward) => {
+          return total + (reward.value || 0);
+        }, 0);
+        setTotalPoints(points);
+      } else {
+        const newPoints = transformedRewards.reduce((total: number, reward: Reward) => {
+          return total + (reward.value || 0);
+        }, 0);
+        setTotalPoints((prev) => prev + newPoints);
+      }
+    } catch (err) {
+      logger.error("보상 데이터 로드 실패:", err);
+      setError("보상 정보를 불러오는데 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [accessToken]);
+
+  // 초기 데이터 로드
+  useEffect(() => {
+    fetchRewards(0, true);
+  }, [fetchRewards]);
+
+  // 무한 스크롤 구현
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // 관찰 대상이 보이고, 더 불러올 데이터가 있고, 현재 로딩 중이 아닐 때
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
+          fetchRewards(currentPage + 1, false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, isLoadingMore, loading, currentPage, fetchRewards]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -140,8 +222,33 @@ export default function Rewards() {
             </div>
           </div>
 
+          {/* 로딩 상태 */}
+          {loading && (
+            <div className="card-default text-center space-y-4">
+              <div className="flex justify-center items-center py-8">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <p className="body-text">보상 정보를 불러오는 중...</p>
+            </div>
+          )}
+
+          {/* 에러 상태 */}
+          {!loading && error && (
+            <div className="card-default text-center space-y-4">
+              <div className="text-4xl mb-4">⚠️</div>
+              <h3 className="heading-secondary text-error">오류 발생</h3>
+              <p className="body-text">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="btn-primary mt-4"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
           {/* 최근 보상 */}
-          {rewards.length > 0 ? (
+          {!loading && !error && rewards.length > 0 && (
             <div className="card-default">
               <h3 className="heading-secondary mb-4">최근 획득한 보상</h3>
               <div className="space-y-3">
@@ -182,8 +289,22 @@ export default function Rewards() {
                     </div>
                   ))}
               </div>
+
+              {/* 무한 스크롤 관찰 대상 */}
+              {hasMore && (
+                <div ref={observerTarget} className="py-4 text-center">
+                  {isLoadingMore && (
+                    <div className="flex justify-center items-center">
+                      <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          ) : (
+          )}
+
+          {/* 빈 데이터 상태 */}
+          {!loading && !error && rewards.length === 0 && (
             <div className="card-default text-center space-y-4">
               <div className="text-4xl mb-4">🎁</div>
               <h3 className="heading-secondary">아직 보상이 없어요</h3>

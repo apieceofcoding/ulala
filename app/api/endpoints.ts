@@ -58,6 +58,14 @@ export const TASK_ENDPOINTS = {
 } as const;
 
 /**
+ * Reward 관련 엔드포인트
+ */
+export const REWARD_ENDPOINTS = {
+  /** 내 보상 목록 조회 */
+  LIST: "/api/rewards",
+} as const;
+
+/**
  * 전체 API 엔드포인트
  * 카테고리별로 그룹화된 엔드포인트를 포함합니다.
  */
@@ -66,6 +74,7 @@ export const API_ENDPOINTS = {
   OAUTH: OAUTH_ENDPOINTS,
   MEMBERS: MEMBER_ENDPOINTS,
   TASKS: TASK_ENDPOINTS,
+  REWARDS: REWARD_ENDPOINTS,
 } as const;
 
 /**
@@ -77,3 +86,5 @@ export type OAuthEndpoint =
   (typeof OAUTH_ENDPOINTS)[keyof typeof OAUTH_ENDPOINTS];
 export type MemberEndpoint =
   (typeof MEMBER_ENDPOINTS)[keyof typeof MEMBER_ENDPOINTS];
+export type RewardEndpoint =
+  (typeof REWARD_ENDPOINTS)[keyof typeof REWARD_ENDPOINTS];
