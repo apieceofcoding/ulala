@@ -1,4 +1,5 @@
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { TaskResponse } from "@/types/task";
 import { TaskStatus } from "@/types/task";
 
@@ -9,20 +10,33 @@ interface DraggableTaskCardProps {
 }
 
 export function DraggableTaskCard({ task, onToggle, onClick }: DraggableTaskCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({
       id: task.id,
+      data: {
+        type: "task",
+        task: task,
+      },
+      transition: {
+        duration: 200,
+        easing: "ease",
+      },
     });
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.5 : 1,
-      }
-    : undefined;
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || "transform 200ms ease",
+    opacity: isDragging ? 0 : 1,
+  };
 
   const getCardClass = () => {
-    const baseClass = "card-default px-3 py-3 transition-all";
+    let baseClass = "card-default px-3 py-3 transition-all";
+
+    // 드래그 중일 때 placeholder 스타일
+    if (isDragging) {
+      baseClass += " border-2 border-dashed border-primary/30 bg-primary/5";
+    }
+
     if (task.status === TaskStatus.IN_PROGRESS) {
       return `${baseClass} border-l-4 border-primary`;
     }

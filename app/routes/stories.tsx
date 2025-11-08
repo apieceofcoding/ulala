@@ -269,39 +269,153 @@ export default function Stories() {
     if (!over) return;
 
     const taskId = active.id as string;
-    const newStatus = over.id as TaskStatus;
+    const activeTask = tasks.find((t) => t.id === taskId);
+    if (!activeTask) return;
 
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task || task.status === newStatus) return;
+    // over.data를 사용하여 drop 대상의 타입 확인
+    const overType = over.data?.current?.type;
 
-    // 새로운 상태에서 가장 큰 displayOrder 찾기
-    const tasksInNewStatus = tasks.filter((t) => t.status === newStatus);
-    const maxDisplayOrder =
-      tasksInNewStatus.length > 0
-        ? Math.max(...tasksInNewStatus.map((t) => t.displayOrder))
-        : 0;
-    const newDisplayOrder = maxDisplayOrder + 1;
+    // 섹션으로 드래그한 경우 (다른 상태로 이동)
+    if (overType === "section") {
+      const newStatus = over.data?.current?.status as TaskStatus;
+      if (!newStatus || activeTask.status === newStatus) return;
 
-    // 완료로 변경 시 보상 생성
-    if (newStatus === TaskStatus.DONE) {
-      generateReward(task);
-    }
+      // 새로운 상태에서 가장 큰 displayOrder 찾기
+      const tasksInNewStatus = tasks.filter((t) => t.status === newStatus);
+      const maxDisplayOrder =
+        tasksInNewStatus.length > 0
+          ? Math.max(...tasksInNewStatus.map((t) => t.displayOrder))
+          : 0;
+      const newDisplayOrder = maxDisplayOrder + 1;
 
-    try {
-      await editTask(taskId, { status: newStatus, displayOrder: newDisplayOrder });
+      // 완료로 변경 시 보상 생성
+      if (newStatus === TaskStatus.DONE) {
+        generateReward(activeTask);
+      }
 
-      // selectedTask가 현재 변경하는 task라면 업데이트
-      if (selectedTask && selectedTask.id === taskId) {
-        setSelectedTask({
-          ...selectedTask,
+      try {
+        await editTask(taskId, {
           status: newStatus,
           displayOrder: newDisplayOrder,
-          endAt:
-            newStatus === TaskStatus.DONE ? new Date().toISOString() : null,
         });
+
+        // selectedTask가 현재 변경하는 task라면 업데이트
+        if (selectedTask && selectedTask.id === taskId) {
+          setSelectedTask({
+            ...selectedTask,
+            status: newStatus,
+            displayOrder: newDisplayOrder,
+            endAt:
+              newStatus === TaskStatus.DONE ? new Date().toISOString() : null,
+          });
+        }
+      } catch {
+        // 에러는 useTasks에서 처리
       }
-    } catch {
-      // 에러는 useTasks에서 처리
+    } else if (overType === "task") {
+      // 다른 task 위로 드래그한 경우
+      const overId = over.id as string;
+      const overTask = tasks.find((t) => t.id === overId);
+
+      if (!overTask) return;
+      if (activeTask.id === overTask.id) return; // 자기 자신
+
+      // 다른 섹션의 task 위로 드래그한 경우 (다른 섹션으로 이동하면서 특정 위치에 삽입)
+      if (activeTask.status !== overTask.status) {
+        const newStatus = overTask.status;
+
+        // 완료로 변경 시 보상 생성
+        if (newStatus === TaskStatus.DONE) {
+          generateReward(activeTask);
+        }
+
+        // 새로운 섹션의 모든 task를 정렬
+        const tasksInNewStatus = tasks
+          .filter((t) => t.status === newStatus)
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+
+        // overTask의 인덱스 찾기
+        const overIndex = tasksInNewStatus.findIndex((t) => t.id === overTask.id);
+        if (overIndex === -1) return;
+
+        // overTask 위치에 activeTask를 삽입
+        const reorderedTasks = [...tasksInNewStatus];
+        reorderedTasks.splice(overIndex, 0, activeTask);
+
+        // displayOrder 재할당
+        try {
+          for (let i = 0; i < reorderedTasks.length; i++) {
+            const task = reorderedTasks[i];
+            const newDisplayOrder = i + 1;
+
+            if (task.id === activeTask.id) {
+              // activeTask는 상태와 displayOrder 모두 변경
+              await editTask(task.id, {
+                status: newStatus,
+                displayOrder: newDisplayOrder,
+              });
+
+              // selectedTask가 현재 변경하는 task라면 업데이트
+              if (selectedTask && selectedTask.id === taskId) {
+                setSelectedTask({
+                  ...selectedTask,
+                  status: newStatus,
+                  displayOrder: newDisplayOrder,
+                  endAt:
+                    newStatus === TaskStatus.DONE
+                      ? new Date().toISOString()
+                      : null,
+                });
+              }
+            } else if (task.displayOrder !== newDisplayOrder) {
+              // 다른 task들은 displayOrder만 변경
+              await editTask(task.id, { displayOrder: newDisplayOrder });
+            }
+          }
+        } catch {
+          // 에러는 useTasks에서 처리
+        }
+      } else {
+        // 같은 섹션 내에서 순서 변경
+        const tasksInSameStatus = tasks
+          .filter((t) => t.status === activeTask.status)
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+
+        // active와 over의 인덱스 찾기
+        const oldIndex = tasksInSameStatus.findIndex((t) => t.id === activeTask.id);
+        const newIndex = tasksInSameStatus.findIndex((t) => t.id === overTask.id);
+
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        // 배열 재정렬 (arrayMove 로직)
+        const reorderedTasks = [...tasksInSameStatus];
+        const [movedTask] = reorderedTasks.splice(oldIndex, 1);
+        reorderedTasks.splice(newIndex, 0, movedTask);
+
+        // displayOrder 재할당 (1부터 시작)
+        try {
+          for (let i = 0; i < reorderedTasks.length; i++) {
+            const task = reorderedTasks[i];
+            const newDisplayOrder = i + 1;
+
+            // displayOrder가 변경된 경우에만 업데이트
+            if (task.displayOrder !== newDisplayOrder) {
+              await editTask(task.id, { displayOrder: newDisplayOrder });
+            }
+          }
+
+          // selectedTask가 변경된 경우 업데이트
+          if (selectedTask && activeTask.id === selectedTask.id) {
+            const newDisplayOrder = newIndex + 1;
+            setSelectedTask({
+              ...selectedTask,
+              displayOrder: newDisplayOrder,
+            });
+          }
+        } catch {
+          // 에러는 useTasks에서 처리
+        }
+      }
     }
   };
 
@@ -328,31 +442,6 @@ export default function Stories() {
               />
             )}
 
-          {/* AI 추천 로딩 화면 */}
-          {isLoadingRecommendations && <RecommendationsLoadingState />}
-
-          {/* 추천 할 일 목록 */}
-          {showRecommendations && (
-            <TaskRecommendations
-              sampleTasks={sampleTasks}
-              onSelectRecommendation={handleSelectRecommendation}
-              onCancel={() => setShowRecommendations(false)}
-            />
-          )}
-
-          {/* 직접 만들기 폼 */}
-          {showCreateForm && (
-            <TaskCreateForm
-              title={newTaskTitle}
-              description={newTaskDescription}
-              isCreating={isCreatingTask}
-              onTitleChange={setNewTaskTitle}
-              onDescriptionChange={setNewTaskDescription}
-              onCreate={handleCreateTask}
-              onCancel={() => setShowCreateForm(false)}
-            />
-          )}
-
           {/* 할 일 목록 - 칸반 레이아웃 */}
           {tasks.length > 0 && (
             <TaskKanbanBoard
@@ -366,6 +455,19 @@ export default function Stories() {
               onShowCreateForm={handleShowCreateForm}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
+              isLoadingRecommendations={isLoadingRecommendations}
+              showRecommendations={showRecommendations}
+              showCreateForm={showCreateForm}
+              sampleTasks={sampleTasks}
+              onSelectRecommendation={handleSelectRecommendation}
+              onCancelRecommendations={() => setShowRecommendations(false)}
+              newTaskTitle={newTaskTitle}
+              newTaskDescription={newTaskDescription}
+              isCreatingTask={isCreatingTask}
+              onTitleChange={setNewTaskTitle}
+              onDescriptionChange={setNewTaskDescription}
+              onCreate={handleCreateTask}
+              onCancelCreate={() => setShowCreateForm(false)}
             />
           )}
         </div>

@@ -4,12 +4,18 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
+  closestCenter,
+  pointerWithin,
+  rectIntersection,
 } from "@dnd-kit/core";
+import type { CollisionDetection } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import type { TaskResponse } from "@/types/task";
 import { TaskStatus } from "@/types/task";
 import { DroppableSection } from "@/components/stories/DroppableSection";
+import { TaskRecommendations, type SampleTask } from "@/components/stories/TaskRecommendations";
+import { TaskCreateForm } from "@/components/stories/TaskCreateForm";
+import { RecommendationsLoadingState } from "@/components/stories/LoadingStates";
 
 interface TaskKanbanBoardProps {
   tasks: TaskResponse[];
@@ -22,6 +28,19 @@ interface TaskKanbanBoardProps {
   onShowCreateForm: () => void;
   onDragStart: (event: DragStartEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  isLoadingRecommendations: boolean;
+  showRecommendations: boolean;
+  showCreateForm: boolean;
+  sampleTasks: SampleTask[];
+  onSelectRecommendation: (sample: SampleTask) => void;
+  onCancelRecommendations: () => void;
+  newTaskTitle: string;
+  newTaskDescription: string;
+  isCreatingTask: boolean;
+  onTitleChange: (title: string) => void;
+  onDescriptionChange: (description: string) => void;
+  onCreate: () => void;
+  onCancelCreate: () => void;
 }
 
 export function TaskKanbanBoard({
@@ -35,6 +54,19 @@ export function TaskKanbanBoard({
   onShowCreateForm,
   onDragStart,
   onDragEnd,
+  isLoadingRecommendations,
+  showRecommendations,
+  showCreateForm,
+  sampleTasks,
+  onSelectRecommendation,
+  onCancelRecommendations,
+  newTaskTitle,
+  newTaskDescription,
+  isCreatingTask,
+  onTitleChange,
+  onDescriptionChange,
+  onCreate,
+  onCancelCreate,
 }: TaskKanbanBoardProps) {
   // 드래그 센서 설정 (터치 및 마우스 지원)
   const sensors = useSensors(
@@ -45,10 +77,62 @@ export function TaskKanbanBoard({
     })
   );
 
+  // 커스텀 collision detection - 다중 컨테이너 간 드래그를 위한 알고리즘
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    // active(드래그 중인) task 정보 가져오기
+    const activeData = args.active.data.current;
+    const activeTaskStatus = activeData?.task?.status;
+
+    // 먼저 pointerWithin으로 포인터가 있는 droppable 영역 찾기
+    const pointerCollisions = pointerWithin(args);
+
+    if (pointerCollisions.length > 0) {
+      // 포인터가 있는 영역 중 같은 섹션의 task만 선택
+      const sameStatusTaskCollision = pointerCollisions.find((collision) => {
+        const container = args.droppableContainers.find(
+          (container) => container.id === collision.id
+        );
+        const containerType = container?.data.current?.type;
+        const containerTask = container?.data.current?.task;
+
+        // task이고 같은 섹션일 때만 반환
+        return containerType === "task" && containerTask?.status === activeTaskStatus;
+      });
+
+      if (sameStatusTaskCollision) {
+        return [sameStatusTaskCollision];
+      }
+
+      // 같은 섹션 task가 없으면 section 반환
+      const sectionCollision = pointerCollisions.find(
+        (collision) => args.droppableContainers.find(
+          (container) => container.id === collision.id
+        )?.data.current?.type === "section"
+      );
+
+      if (sectionCollision) {
+        return [sectionCollision];
+      }
+
+      // 둘 다 없으면 첫 번째 collision 반환
+      return [pointerCollisions[0]];
+    }
+
+    // pointerWithin으로 못 찾으면 closestCenter 사용
+    const closestCenterCollisions = closestCenter(args);
+
+    if (closestCenterCollisions.length > 0) {
+      return closestCenterCollisions;
+    }
+
+    // 그래도 못 찾으면 rectIntersection 사용
+    return rectIntersection(args);
+  };
+
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={collisionDetectionStrategy}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
@@ -68,6 +152,31 @@ export function TaskKanbanBoard({
             직접 추가
           </button>
         </div>
+
+        {/* AI 추천 로딩 화면 */}
+        {isLoadingRecommendations && <RecommendationsLoadingState />}
+
+        {/* 추천 할 일 목록 */}
+        {showRecommendations && (
+          <TaskRecommendations
+            sampleTasks={sampleTasks}
+            onSelectRecommendation={onSelectRecommendation}
+            onCancel={onCancelRecommendations}
+          />
+        )}
+
+        {/* 직접 만들기 폼 */}
+        {showCreateForm && (
+          <TaskCreateForm
+            title={newTaskTitle}
+            description={newTaskDescription}
+            isCreating={isCreatingTask}
+            onTitleChange={onTitleChange}
+            onDescriptionChange={onDescriptionChange}
+            onCreate={onCreate}
+            onCancel={onCancelCreate}
+          />
+        )}
 
         {/* 할일 섹션 */}
         <DroppableSection

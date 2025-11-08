@@ -58,6 +58,7 @@ export function TaskDetailModal({
 
   const handleToggleStatus = async () => {
     await onToggleStatus(task.id);
+    handleClose();
   };
 
   const getStatusLabel = () => {
