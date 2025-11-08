@@ -172,19 +172,28 @@ export default function Stories() {
       newStatus = TaskStatus.TODO;
     }
 
+    // 새로운 상태에서 가장 큰 displayOrder 찾기
+    const tasksInNewStatus = tasks.filter((t) => t.status === newStatus);
+    const maxDisplayOrder =
+      tasksInNewStatus.length > 0
+        ? Math.max(...tasksInNewStatus.map((t) => t.displayOrder))
+        : 0;
+    const newDisplayOrder = maxDisplayOrder + 1;
+
     // 완료 시 보상 생성
     if (newStatus === TaskStatus.DONE) {
       generateReward(task);
     }
 
     try {
-      await editTask(id, { status: newStatus });
+      await editTask(id, { status: newStatus, displayOrder: newDisplayOrder });
 
       // selectedTask가 현재 토글하는 task라면 업데이트
       if (selectedTask && selectedTask.id === id) {
         setSelectedTask({
           ...selectedTask,
           status: newStatus,
+          displayOrder: newDisplayOrder,
           endAt:
             newStatus === TaskStatus.DONE ? new Date().toISOString() : null,
         });
@@ -265,19 +274,28 @@ export default function Stories() {
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
+    // 새로운 상태에서 가장 큰 displayOrder 찾기
+    const tasksInNewStatus = tasks.filter((t) => t.status === newStatus);
+    const maxDisplayOrder =
+      tasksInNewStatus.length > 0
+        ? Math.max(...tasksInNewStatus.map((t) => t.displayOrder))
+        : 0;
+    const newDisplayOrder = maxDisplayOrder + 1;
+
     // 완료로 변경 시 보상 생성
     if (newStatus === TaskStatus.DONE) {
       generateReward(task);
     }
 
     try {
-      await editTask(taskId, { status: newStatus });
+      await editTask(taskId, { status: newStatus, displayOrder: newDisplayOrder });
 
       // selectedTask가 현재 변경하는 task라면 업데이트
       if (selectedTask && selectedTask.id === taskId) {
         setSelectedTask({
           ...selectedTask,
           status: newStatus,
+          displayOrder: newDisplayOrder,
           endAt:
             newStatus === TaskStatus.DONE ? new Date().toISOString() : null,
         });

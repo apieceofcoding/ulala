@@ -46,6 +46,7 @@ export interface UpdateTaskRequest {
   title?: string;
   description?: string;
   status?: TaskStatus;
+  displayOrder?: number;
   startAt?: string;
   endAt?: string;
   dueAt?: string;
