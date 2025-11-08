@@ -20,6 +20,7 @@ export interface TaskResponse {
   title: string;
   description: string | null;
   status: TaskStatus;
+  displayOrder: number;
   startAt: string | null;
   endAt: string | null;
   dueAt: string | null;

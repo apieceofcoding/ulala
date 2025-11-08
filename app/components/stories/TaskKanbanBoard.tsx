@@ -73,7 +73,9 @@ export function TaskKanbanBoard({
         <DroppableSection
           id={TaskStatus.TODO}
           title="할일"
-          tasks={tasks.filter((t) => t.status === TaskStatus.TODO)}
+          tasks={tasks
+            .filter((t) => t.status === TaskStatus.TODO)
+            .sort((a, b) => a.displayOrder - b.displayOrder)}
           emptyMessage="할 일이 없습니다"
           onToggle={onToggleTask}
           onClick={onTaskClick}
@@ -85,7 +87,9 @@ export function TaskKanbanBoard({
         <DroppableSection
           id={TaskStatus.IN_PROGRESS}
           title="진행중"
-          tasks={tasks.filter((t) => t.status === TaskStatus.IN_PROGRESS)}
+          tasks={tasks
+            .filter((t) => t.status === TaskStatus.IN_PROGRESS)
+            .sort((a, b) => a.displayOrder - b.displayOrder)}
           emptyMessage="진행 중인 태스크가 없습니다"
           onToggle={onToggleTask}
           onClick={onTaskClick}
@@ -97,7 +101,9 @@ export function TaskKanbanBoard({
         <DroppableSection
           id={TaskStatus.DONE}
           title="완료"
-          tasks={tasks.filter((t) => t.status === TaskStatus.DONE)}
+          tasks={tasks
+            .filter((t) => t.status === TaskStatus.DONE)
+            .sort((a, b) => a.displayOrder - b.displayOrder)}
           emptyMessage="완료된 태스크가 없습니다"
           onToggle={onToggleTask}
           onClick={onTaskClick}
