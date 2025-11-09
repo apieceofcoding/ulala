@@ -4,17 +4,10 @@ import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { TaskKanbanBoard } from "@/components/stories/TaskKanbanBoard";
 import { TaskDetailModal } from "@/components/stories/TaskDetailModal";
-import { TaskCreateForm } from "@/components/stories/TaskCreateForm";
-import {
-  TaskRecommendations,
-  type SampleTask,
-} from "@/components/stories/TaskRecommendations";
+import type { SampleTask } from "@/components/stories/TaskRecommendations";
 import { EmptyTaskState } from "@/components/stories/EmptyTaskState";
 import { ErrorAlert } from "@/components/stories/ErrorAlert";
-import {
-  TaskLoadingState,
-  RecommendationsLoadingState,
-} from "@/components/stories/LoadingStates";
+import { TaskLoadingState } from "@/components/stories/LoadingStates";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks } from "@/hooks/useTasks";
 import type { TaskResponse } from "@/types/task";
@@ -421,7 +414,7 @@ export default function Stories() {
 
   return (
     <>
-      <TopBar level={1} />
+      <TopBar />
       <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark px-0 pt-14 pb-16 md:pb-1 md:pl-64">
         <div className="container max-w-lg mx-auto space-y-6 pt-4">
           {/* 에러 메시지 */}

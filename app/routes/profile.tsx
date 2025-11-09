@@ -17,18 +17,10 @@ export function meta() {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { accessToken, member, setAccessToken, setMember, fetchMember } =
-    useAuth();
+  const { accessToken, member, setAccessToken, setMember } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // accessToken이 있으면 member 정보 조회
-  useEffect(() => {
-    if (accessToken && !member) {
-      fetchMember();
-    }
-  }, [accessToken, member, fetchMember]);
 
   useEffect(() => {
     // 다크 모드 설정 불러오기 및 적용
@@ -115,7 +107,7 @@ export default function Profile() {
 
   return (
     <>
-      <TopBar level={level} />
+      <TopBar />
       <main className="min-h-screen bg-bg-secondary dark:bg-bg-secondary-dark p-1 pt-14 pb-16 md:pb-1 md:pl-64">
         <div className="container max-w-lg mx-auto space-y-6">
           {/* 로그인 전 상태 */}

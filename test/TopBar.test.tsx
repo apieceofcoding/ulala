@@ -1,27 +1,60 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock useLocation for TopBar
+// Mock useAuth
+const mockMember = {
+  id: 'test-id',
+  username: 'testuser',
+  displayName: '테스트유저',
+  level: 5,
+  exp: 100,
+};
+
+let authMock: {
+  member: typeof mockMember | null;
+  accessToken: string | null;
+} = {
+  member: mockMember,
+  accessToken: 'test-token',
+};
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => authMock,
+}));
+
+// Mock useNavigate for TopBar
 vi.mock('react-router', () => ({
-  useLocation: () => ({ pathname: '/' }),
+  useNavigate: () => vi.fn(),
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 import { TopBar } from '@/components/TopBar';
 
 describe('TopBar', () => {
-  it('renders current tab name correctly', () => {
-    render(<TopBar />);
-    expect(screen.getByText('홈')).toBeInTheDocument();
+  beforeEach(() => {
+    // Reset auth mock before each test
+    authMock = {
+      member: mockMember,
+      accessToken: 'test-token',
+    };
   });
 
-  it('renders default level', () => {
+  it('renders member level when logged in', () => {
     render(<TopBar />);
-    expect(screen.getByText('Lv.1')).toBeInTheDocument();
-  });
-
-  it('renders custom level', () => {
-    render(<TopBar level={5} />);
     expect(screen.getByText('Lv.5')).toBeInTheDocument();
+  });
+
+  it('renders member displayName when logged in', () => {
+    render(<TopBar />);
+    expect(screen.getByText('테스트유저')).toBeInTheDocument();
+  });
+
+  it('renders login message when not logged in', () => {
+    authMock.member = null;
+    render(<TopBar />);
+    expect(screen.getByText('로그인하세요')).toBeInTheDocument();
   });
 
   it('renders menu button with proper aria-label', () => {

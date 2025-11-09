@@ -4,13 +4,11 @@ import logoLight from "@/assets/images/ulala.png";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface TopBarProps {
-  level?: number;
   onSettingsClick?: () => void;
   className?: string;
 }
 
 export function TopBar({
-  level = 1,
   onSettingsClick,
   className = "",
 }: TopBarProps) {
@@ -53,16 +51,22 @@ export function TopBar({
 
           {/* 중앙: 레벨 + 표시이름 */}
           <div className="flex-1 flex justify-center">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
-                Lv.{member ? member.level : level}
-              </span>
-              {member && (
+            {member ? (
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
+                  Lv.{member.level}
+                </span>
                 <span className="text-base font-medium text-text-secondary dark:text-text-secondary-dark">
                   {member.displayName || member.username}
                 </span>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-base font-medium text-text-secondary dark:text-text-secondary-dark">
+                  로그인하세요
+                </span>
+              </div>
+            )}
           </div>
 
           {/* 오른쪽: 설정 버튼 */}

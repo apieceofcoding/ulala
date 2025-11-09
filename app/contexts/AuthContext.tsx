@@ -34,6 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           if (data.accessToken) {
             setAccessToken(data.accessToken);
+            // accessToken 발급 후 자동으로 member 정보 조회
+            await loadMemberInfo(data.accessToken);
           }
         }
       } catch (error) {
@@ -46,29 +48,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // 회원 정보 조회 함수 (필요할 때만 호출)
-  const fetchMember = async () => {
-    if (!accessToken) {
-      logger.warn("accessToken이 없어 회원 정보를 조회할 수 없습니다.");
-      return;
-    }
-
+  // member 정보 로드 헬퍼 함수
+  const loadMemberInfo = async (token: string) => {
     try {
       const memberResponse = await apiClient.get(API_ENDPOINTS.MEMBERS.ME, {
-        token: accessToken,
+        token,
       });
 
       if (memberResponse.ok) {
         const memberData = await memberResponse.json();
         setMember(memberData);
       } else {
-        // 토큰이 유효하지 않으면 초기화
-        setAccessToken(null);
-        setMember(null);
+        logger.warn("회원 정보 조회 실패");
       }
     } catch (error) {
       logger.error("회원 정보 조회 오류:", error);
     }
+  };
+
+  // 회원 정보 조회 함수 (수동 갱신용)
+  const fetchMember = async () => {
+    if (!accessToken) {
+      logger.warn("accessToken이 없어 회원 정보를 조회할 수 없습니다.");
+      return;
+    }
+
+    await loadMemberInfo(accessToken);
   };
 
   // 인증 정보 강제 갱신 함수
@@ -83,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         if (data.accessToken) {
           setAccessToken(data.accessToken);
+          // accessToken 갱신 후 자동으로 member 정보 조회
+          await loadMemberInfo(data.accessToken);
         }
       } else {
         setAccessToken(null);

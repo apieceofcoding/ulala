@@ -12,7 +12,7 @@ export function meta() {
 export default function Home() {
   return (
     <>
-      <TopBar level={1} />
+      <TopBar />
       <main className="pt-14 pb-16 md:pb-0 md:pl-64">
         <HomeContent />
       </main>
