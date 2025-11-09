@@ -13,15 +13,18 @@
 
 2. **Records 탭 오늘의 진행 보상 데이터 연동** (✅ 완료 - 2025-11-09)
    - POST /api/rewards/search API 연동
+   - useRewards 커스텀 훅으로 보상 로직 분리
    - 오늘 완료한 태스크의 경험치/포인트 집계
-   - TodayProgress 컴포넌트 2x2 그리드 확장
+   - TodayProgress 컴포넌트 3열 그리드 (오늘의 스토리 제거)
 
 ### 핵심 구현 파일
 - `app/hooks/useTasks.ts`: 태스크 CRUD 및 통계 조회
+- `app/hooks/useRewards.ts`: 보상 조회 및 검색
 - `app/api/tasks.ts`: 태스크 API 클라이언트
-- `app/api/rewards.ts`: 보상 검색 API
+- `app/api/rewards.ts`: 보상 API 클라이언트
 - `app/routes/stories.tsx`: 스토리 페이지 (태스크 생성/관리)
 - `app/routes/records.tsx`: 기록 페이지 (통계 및 보상)
+- `app/routes/rewards.tsx`: 보상 페이지 (보상 목록)
 - `app/components/records/TodayProgress.tsx`: 오늘의 진행 현황
 
 ---
@@ -544,15 +547,18 @@ const handleCreateTodo = async () => {
 **상태**: ✅ 구현 완료 (2025-11-09)
 **구현된 파일**:
 - `app/api/endpoints.ts`: REWARD_ENDPOINTS.SEARCH 추가
-- `app/api/rewards.ts`: searchRewards 함수 (신규 생성)
-- `app/components/records/TodayProgress.tsx`: Props 확장 및 2x2 그리드 UI
-- `app/routes/records.tsx`: 오늘 완료 태스크 필터링 및 보상 데이터 조회 로직
+- `app/api/rewards.ts`: searchRewards 함수 및 타입 정의
+- `app/hooks/useRewards.ts`: 보상 관련 로직 관리 커스텀 훅 (신규)
+- `app/components/records/TodayProgress.tsx`: 3열 그리드 UI
+- `app/routes/records.tsx`: useRewards hook 사용하여 보상 데이터 조회
+- `app/routes/rewards.tsx`: useRewards hook 사용하여 보상 목록 조회
 
 **주요 변경사항**:
 - POST /api/rewards/search API 연동
+- **useRewards 커스텀 훅으로 보상 로직 분리** ⭐
 - 오늘 완료한 태스크 필터링 로직 (useMemo)
 - 보상 데이터 집계 (경험치, 포인트)
-- TodayProgress 컴포넌트 2x2 그리드로 확장
+- TodayProgress 컴포넌트 3열 그리드로 확장 (오늘의 스토리 제거)
 
 ### 개요
 Records 탭의 "오늘의 진행" 섹션에 POST /api/rewards/search API를 활용하여 오늘 완료한 태스크의 보상 정보를 표시합니다.

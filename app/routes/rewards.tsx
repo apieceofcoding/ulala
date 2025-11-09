@@ -2,9 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
-import { API_ENDPOINTS } from "@/api/endpoints";
-import { apiClient } from "@/api/api";
-import { logger } from "@/utils/logger";
+import { useRewards } from "@/hooks/useRewards";
+import type { RewardResponse } from "@/api/rewards";
 
 export function meta() {
   return [
@@ -25,28 +24,6 @@ interface Reward {
   isNew?: boolean;
 }
 
-// 백엔드 RewardResponse 타입
-interface RewardResponse {
-  id: string;
-  memberId: string;
-  sourceId: string;
-  sourceType: "TASK" | "EVENT";
-  point: number;
-  exp: number;
-  createdAt: string | null;
-  modifiedAt: string | null;
-}
-
-// 페이지네이션 응답 타입
-interface PageResponse<T> {
-  content: T[];
-  page: {
-    size: number;
-    number: number;
-    totalElements: number;
-    totalPages: number;
-  };
-}
 
 // sourceType에 따른 아이콘 매핑
 const getIconBySourceType = (sourceType: string): string => {
@@ -76,11 +53,11 @@ const transformRewardResponse = (response: RewardResponse): Reward => {
 
 export default function Rewards() {
   const { accessToken } = useAuth();
+  const { fetchRewardsList, fetchError } = useRewards({ accessToken });
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
@@ -100,18 +77,8 @@ export default function Rewards() {
       } else {
         setIsLoadingMore(true);
       }
-      setError(null);
 
-      const response = await apiClient.get(
-        `${API_ENDPOINTS.REWARDS.LIST}?page=${page}&size=10`,
-        { token: accessToken }
-      );
-
-      if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.status}`);
-      }
-
-      const data: PageResponse<RewardResponse> = await response.json();
+      const data = await fetchRewardsList(page, 10);
 
       // 데이터 변환
       const transformedRewards = data.content.map(transformRewardResponse);
@@ -139,14 +106,15 @@ export default function Rewards() {
         }, 0);
         setTotalPoints((prev) => prev + newPoints);
       }
-    } catch (err) {
-      logger.error("보상 데이터 로드 실패:", err);
-      setError("보상 정보를 불러오는데 실패했습니다. 다시 시도해주세요.");
+    } catch {
+      // 에러는 useRewards에서 이미 처리됨
+      setLoading(false);
+      setIsLoadingMore(false);
     } finally {
       setLoading(false);
       setIsLoadingMore(false);
     }
-  }, [accessToken]);
+  }, [accessToken, fetchRewardsList]);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -233,11 +201,11 @@ export default function Rewards() {
           )}
 
           {/* 에러 상태 */}
-          {!loading && error && (
+          {!loading && fetchError && (
             <div className="card-default text-center space-y-4">
               <div className="text-4xl mb-4">⚠️</div>
               <h3 className="heading-secondary text-error">오류 발생</h3>
-              <p className="body-text">{error}</p>
+              <p className="body-text">{fetchError}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="btn-primary mt-4"
@@ -248,7 +216,7 @@ export default function Rewards() {
           )}
 
           {/* 최근 보상 */}
-          {!loading && !error && rewards.length > 0 && (
+          {!loading && !fetchError && rewards.length > 0 && (
             <div className="card-default">
               <h3 className="heading-secondary mb-4">최근 획득한 보상</h3>
               <div className="space-y-3">
@@ -304,7 +272,7 @@ export default function Rewards() {
           )}
 
           {/* 빈 데이터 상태 */}
-          {!loading && !error && rewards.length === 0 && (
+          {!loading && !fetchError && rewards.length === 0 && (
             <div className="card-default text-center space-y-4">
               <div className="text-4xl mb-4">🎁</div>
               <h3 className="heading-secondary">아직 보상이 없어요</h3>

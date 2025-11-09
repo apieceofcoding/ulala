@@ -3,6 +3,7 @@ import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks } from "@/hooks/useTasks";
+import { useRewards } from "@/hooks/useRewards";
 import {
   Calendar,
   generateSampleRecords,
@@ -12,9 +13,7 @@ import { TodayProgress } from "@/components/records/TodayProgress";
 import { RecentActivity } from "@/components/records/RecentActivity";
 import { WeeklyStats } from "@/components/records/WeeklyStats";
 import { formatLocalDate, getCalendarDateRange } from "@/utils/dateUtils";
-import { searchRewards } from "@/api/rewards";
 import { TaskStatus } from "@/types/task";
-import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -40,6 +39,7 @@ export default function Records() {
     accessToken,
     autoFetch: true, // 태스크 목록 조회 필요 (오늘 완료한 태스크 확인용)
   });
+  const { searchTaskRewards } = useRewards({ accessToken });
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // 보상 데이터 상태
@@ -72,39 +72,13 @@ export default function Records() {
 
   // 보상 데이터 조회
   const fetchTodayRewards = useCallback(async () => {
-    if (!accessToken || todayCompletedTasks.length === 0) {
-      // 완료한 태스크가 없으면 0으로 설정
-      setCompletedTasksCount(0);
-      setTotalExp(0);
-      setTotalPoints(0);
-      return;
-    }
+    const taskIds = todayCompletedTasks.map((task) => task.id);
+    const result = await searchTaskRewards(taskIds);
 
-    try {
-      const taskIds = todayCompletedTasks.map((task) => task.id);
-
-      const rewards = await searchRewards(
-        {
-          sourceType: "TASK",
-          sourceIds: taskIds,
-        },
-        accessToken,
-      );
-
-      // 데이터 집계
-      setCompletedTasksCount(todayCompletedTasks.length);
-      const exp = rewards.reduce((sum, reward) => sum + reward.exp, 0);
-      const points = rewards.reduce((sum, reward) => sum + reward.point, 0);
-      setTotalExp(exp);
-      setTotalPoints(points);
-    } catch (error) {
-      logger.error("Failed to fetch today rewards:", error);
-      // 에러 발생 시 기본값(0) 유지
-      setCompletedTasksCount(todayCompletedTasks.length);
-      setTotalExp(0);
-      setTotalPoints(0);
-    }
-  }, [accessToken, todayCompletedTasks]);
+    setCompletedTasksCount(result.completedTasksCount);
+    setTotalExp(result.totalExp);
+    setTotalPoints(result.totalPoints);
+  }, [todayCompletedTasks, searchTaskRewards]);
 
   // 오늘 완료한 태스크가 변경되면 보상 데이터 조회
   useEffect(() => {
