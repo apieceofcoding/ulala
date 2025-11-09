@@ -106,50 +106,6 @@ export default function Stories() {
     }
   };
 
-  const generateReward = (task: TaskResponse) => {
-    // 카테고리별 보상 설정
-    const categoryRewards: Record<string, { icon: string; points: number }> = {
-      건강: { icon: "💧", points: 10 },
-      운동: { icon: "🚶‍♂️", points: 15 },
-      학습: { icon: "📚", points: 20 },
-      자기계발: { icon: "✨", points: 12 },
-      "디지털 디톡스": { icon: "📱", points: 18 },
-      기타: { icon: "🎯", points: 8 },
-    };
-
-    const category = task.description || "기타";
-    const rewardInfo = categoryRewards[category] || categoryRewards["기타"];
-
-    const newReward = {
-      id: Date.now(),
-      title: `${category} 달성`,
-      description: `${task.title}을(를) 완료했습니다`,
-      earnedAt: new Date().toISOString(),
-      type: "points" as const,
-      value: rewardInfo.points,
-      icon: rewardInfo.icon,
-      isNew: true,
-    };
-
-    // 로컬 스토리지에서 기존 보상 가져오기
-    const savedRewards = localStorage.getItem("ulala-rewards");
-    const rewards = savedRewards ? JSON.parse(savedRewards) : [];
-
-    // 새 보상 추가
-    const updatedRewards = [newReward, ...rewards];
-    localStorage.setItem("ulala-rewards", JSON.stringify(updatedRewards));
-
-    // 새 보상 알림 표시 (3초 후 자동 제거)
-    setTimeout(() => {
-      const currentRewards = JSON.parse(
-        localStorage.getItem("ulala-rewards") || "[]"
-      );
-      const updatedRewards = currentRewards.map((reward: typeof newReward) =>
-        reward.id === newReward.id ? { ...reward, isNew: false } : reward
-      );
-      localStorage.setItem("ulala-rewards", JSON.stringify(updatedRewards));
-    }, 3000);
-  };
 
   const handleToggleTask = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
@@ -172,11 +128,6 @@ export default function Stories() {
         ? Math.max(...tasksInNewStatus.map((t) => t.displayOrder))
         : 0;
     const newDisplayOrder = maxDisplayOrder + 1;
-
-    // 완료 시 보상 생성
-    if (newStatus === TaskStatus.DONE) {
-      generateReward(task);
-    }
 
     try {
       await editTask(id, { status: newStatus, displayOrder: newDisplayOrder });
@@ -281,11 +232,6 @@ export default function Stories() {
           : 0;
       const newDisplayOrder = maxDisplayOrder + 1;
 
-      // 완료로 변경 시 보상 생성
-      if (newStatus === TaskStatus.DONE) {
-        generateReward(activeTask);
-      }
-
       try {
         await editTask(taskId, {
           status: newStatus,
@@ -316,11 +262,6 @@ export default function Stories() {
       // 다른 섹션의 task 위로 드래그한 경우 (다른 섹션으로 이동하면서 특정 위치에 삽입)
       if (activeTask.status !== overTask.status) {
         const newStatus = overTask.status;
-
-        // 완료로 변경 시 보상 생성
-        if (newStatus === TaskStatus.DONE) {
-          generateReward(activeTask);
-        }
 
         // 새로운 섹션의 모든 task를 정렬
         const tasksInNewStatus = tasks
