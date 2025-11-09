@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router";
 import logoDark from "@/assets/images/ulala_dark.png";
 import logoLight from "@/assets/images/ulala.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TopBarProps {
   level?: number;
@@ -14,6 +15,7 @@ export function TopBar({
   className = "",
 }: TopBarProps) {
   const navigate = useNavigate();
+  const { member } = useAuth();
 
   const handleSettingsClick = () => {
     if (onSettingsClick) {
@@ -49,11 +51,18 @@ export function TopBar({
             </Link>
           </div>
 
-          {/* 중앙: 레벨 */}
+          {/* 중앙: 레벨 + 표시이름 */}
           <div className="flex-1 flex justify-center">
-            <span className="text-base font-semibold text-text-primary">
-              Lv.{level}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
+                Lv.{member ? member.level : level}
+              </span>
+              {member && (
+                <span className="text-base font-medium text-text-secondary dark:text-text-secondary-dark">
+                  {member.displayName || member.username}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* 오른쪽: 설정 버튼 */}

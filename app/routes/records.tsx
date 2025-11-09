@@ -34,6 +34,7 @@ export default function Records() {
     fetchWeeklyStats,
   } = useTasks({
     accessToken,
+    autoFetch: false, // 기록탭에서는 태스크 목록 조회 불필요
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [todayStoryCount, setTodayStoryCount] = useState(0);

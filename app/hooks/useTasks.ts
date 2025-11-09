@@ -25,6 +25,7 @@ import { logger } from "@/utils/logger";
 
 interface UseTasksOptions {
   accessToken: string | null;
+  autoFetch?: boolean; // 자동으로 태스크 목록 조회 여부 (기본값: true)
 }
 
 interface UseTasksReturn {
@@ -52,7 +53,10 @@ interface UseTasksReturn {
   fetchWeeklyStats: () => Promise<void>;
 }
 
-export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
+export function useTasks({
+  accessToken,
+  autoFetch = true,
+}: UseTasksOptions): UseTasksReturn {
   const [tasks, setTasks] = useState<TaskResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -288,10 +292,12 @@ export function useTasks({ accessToken }: UseTasksOptions): UseTasksReturn {
     setError(null);
   }, []);
 
-  // accessToken이 변경되면 태스크 목록 다시 조회
+  // accessToken이 변경되면 태스크 목록 다시 조회 (autoFetch가 true일 때만)
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    if (autoFetch) {
+      fetchTasks();
+    }
+  }, [fetchTasks, autoFetch]);
 
   return {
     tasks,
