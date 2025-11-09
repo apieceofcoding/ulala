@@ -240,3 +240,58 @@ export function Calendar({
     </div>
   );
 }
+
+/**
+ * 캘린더 스켈레톤 로딩 UI
+ */
+export function CalendarSkeleton() {
+  return (
+    <div className="card-default max-w-md mx-auto">
+      {/* 헤더 스켈레톤 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="h-6 w-24 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded animate-pulse"></div>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded animate-pulse"></div>
+          <div className="h-5 w-20 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded animate-pulse"></div>
+          <div className="w-8 h-8 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
+          <div
+            key={day}
+            className="text-center caption-text font-semibold py-2"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* 캘린더 그리드 스켈레톤 */}
+      <div className="space-y-1">
+        {Array.from({ length: 6 }).map((_, weekIndex) => (
+          <div key={weekIndex} className="grid grid-cols-7 gap-1">
+            {Array.from({ length: 7 }).map((_, dayIndex) => (
+              <div
+                key={dayIndex}
+                className="aspect-square bg-bg-tertiary dark:bg-bg-tertiary-dark rounded animate-pulse"
+              ></div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* 범례 스켈레톤 */}
+      <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border-light dark:border-border-dark">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-bg-tertiary dark:bg-bg-tertiary-dark animate-pulse"></div>
+            <div className="h-3 w-12 bg-bg-tertiary dark:bg-bg-tertiary-dark rounded animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

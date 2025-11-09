@@ -6,6 +6,7 @@ import { useTasks } from "@/hooks/useTasks";
 import { useRewards } from "@/hooks/useRewards";
 import {
   Calendar,
+  CalendarSkeleton,
   generateSampleRecords,
   type StoryRecord,
 } from "@/components/records/Calendar";
@@ -137,11 +138,7 @@ export default function Records() {
               />
 
               {accessToken && isDailyStatsLoading ? (
-                <div className="card-default text-center py-8">
-                  <div className="text-text-secondary dark:text-text-secondary-dark">
-                    데이터를 불러오는 중...
-                  </div>
-                </div>
+                <CalendarSkeleton />
               ) : (
                 <Calendar
                   storyRecords={storyRecords}
