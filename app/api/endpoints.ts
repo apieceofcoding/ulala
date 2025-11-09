@@ -63,6 +63,8 @@ export const TASK_ENDPOINTS = {
 export const REWARD_ENDPOINTS = {
   /** 내 보상 목록 조회 */
   LIST: "/api/rewards",
+  /** 보상 검색 (소스 타입과 ID로 조회) */
+  SEARCH: "/api/rewards/search",
 } as const;
 
 /**

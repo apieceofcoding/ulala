@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,9 @@ import { TodayProgress } from "@/components/records/TodayProgress";
 import { RecentActivity } from "@/components/records/RecentActivity";
 import { WeeklyStats } from "@/components/records/WeeklyStats";
 import { formatLocalDate, getCalendarDateRange } from "@/utils/dateUtils";
+import { searchRewards } from "@/api/rewards";
+import { TaskStatus } from "@/types/task";
+import { logger } from "@/utils/logger";
 
 export function meta() {
   return [
@@ -23,6 +26,7 @@ export function meta() {
 export default function Records() {
   const { accessToken } = useAuth();
   const {
+    tasks,
     dailyStats,
     isDailyStatsLoading,
     fetchDailyStats,
@@ -34,13 +38,78 @@ export default function Records() {
     fetchWeeklyStats,
   } = useTasks({
     accessToken,
-    autoFetch: false, // 기록탭에서는 태스크 목록 조회 불필요
+    autoFetch: true, // 태스크 목록 조회 필요 (오늘 완료한 태스크 확인용)
   });
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [todayStoryCount, setTodayStoryCount] = useState(0);
+
+  // 보상 데이터 상태
+  const [completedTasksCount, setCompletedTasksCount] = useState(0);
+  const [totalExp, setTotalExp] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   // 샘플 데이터는 한번만 생성 (비로그인 상태용)
   const sampleRecords = useMemo(() => generateSampleRecords(), []);
+
+  // 오늘 완료한 태스크 필터링 (useMemo로 캐싱)
+  const todayCompletedTasks = useMemo(() => {
+    if (!tasks || tasks.length === 0) return [];
+
+    const todayDateString = formatLocalDate(new Date());
+
+    return tasks.filter((task) => {
+      // status가 DONE이어야 함
+      if (task.status !== TaskStatus.DONE) return false;
+
+      // endAt이 있으면 우선 사용, 없으면 modifiedAt 사용
+      const completedDate = task.endAt || task.modifiedAt;
+      if (!completedDate) return false;
+
+      // 날짜만 비교 (시간 부분 제거)
+      const taskDateString = formatLocalDate(new Date(completedDate));
+      return taskDateString === todayDateString;
+    });
+  }, [tasks]);
+
+  // 보상 데이터 조회
+  const fetchTodayRewards = useCallback(async () => {
+    if (!accessToken || todayCompletedTasks.length === 0) {
+      // 완료한 태스크가 없으면 0으로 설정
+      setCompletedTasksCount(0);
+      setTotalExp(0);
+      setTotalPoints(0);
+      return;
+    }
+
+    try {
+      const taskIds = todayCompletedTasks.map((task) => task.id);
+
+      const rewards = await searchRewards(
+        {
+          sourceType: "TASK",
+          sourceIds: taskIds,
+        },
+        accessToken,
+      );
+
+      // 데이터 집계
+      setCompletedTasksCount(todayCompletedTasks.length);
+      const exp = rewards.reduce((sum, reward) => sum + reward.exp, 0);
+      const points = rewards.reduce((sum, reward) => sum + reward.point, 0);
+      setTotalExp(exp);
+      setTotalPoints(points);
+    } catch (error) {
+      logger.error("Failed to fetch today rewards:", error);
+      // 에러 발생 시 기본값(0) 유지
+      setCompletedTasksCount(todayCompletedTasks.length);
+      setTotalExp(0);
+      setTotalPoints(0);
+    }
+  }, [accessToken, todayCompletedTasks]);
+
+  // 오늘 완료한 태스크가 변경되면 보상 데이터 조회
+  useEffect(() => {
+    fetchTodayRewards();
+  }, [fetchTodayRewards]);
 
   // 스토리 기록 데이터 조회
   useEffect(() => {
@@ -80,24 +149,6 @@ export default function Records() {
       }))
     : sampleRecords;
 
-  // 오늘의 스토리 수 저장 (오늘 데이터가 포함된 경우에만 업데이트)
-  useEffect(() => {
-    const todayDateString = formatLocalDate(new Date());
-    const todayRecord = storyRecords.find(
-      (record) => record.date === todayDateString
-    );
-
-    // 오늘 데이터가 있으면 저장 (로그인/비로그인 모두)
-    if (todayRecord) {
-      setTodayStoryCount(todayRecord.storyCount);
-    }
-    // 비로그인 상태에서 오늘 데이터가 없으면 0으로 설정
-    else if (!accessToken) {
-      setTodayStoryCount(0);
-    }
-    // 로그인 상태에서 오늘 데이터가 없으면 기존 값 유지 (업데이트 안함)
-  }, [storyRecords, accessToken]);
-
   return (
     <>
       <TopBar level={1} />
@@ -105,7 +156,11 @@ export default function Records() {
         <div className="container max-w-lg mx-auto space-y-6">
           <div className="card-default text-center space-y-4">
             <div className="space-y-4">
-              <TodayProgress todayStoryCount={todayStoryCount} />
+              <TodayProgress
+                completedTasks={completedTasksCount}
+                totalExp={totalExp}
+                totalPoints={totalPoints}
+              />
 
               {accessToken && isDailyStatsLoading ? (
                 <div className="card-default text-center py-8">

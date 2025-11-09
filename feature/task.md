@@ -1,3 +1,31 @@
+# 태스크 관리 시스템 명세서
+
+**최종 업데이트**: 2025-11-09
+
+## 📋 요약
+
+이 문서는 Ulala 프로젝트의 태스크 관리 시스템 구현을 다룹니다:
+
+1. **스토리 페이지 태스크 API 연동** (✅ 완료 - 2025-10-20)
+   - 로컬 상태 → 서버 API 전환
+   - useTasks 커스텀 훅으로 로직 분리
+   - 낙관적 업데이트 패턴 적용
+
+2. **Records 탭 오늘의 진행 보상 데이터 연동** (✅ 완료 - 2025-11-09)
+   - POST /api/rewards/search API 연동
+   - 오늘 완료한 태스크의 경험치/포인트 집계
+   - TodayProgress 컴포넌트 2x2 그리드 확장
+
+### 핵심 구현 파일
+- `app/hooks/useTasks.ts`: 태스크 CRUD 및 통계 조회
+- `app/api/tasks.ts`: 태스크 API 클라이언트
+- `app/api/rewards.ts`: 보상 검색 API
+- `app/routes/stories.tsx`: 스토리 페이지 (태스크 생성/관리)
+- `app/routes/records.tsx`: 기록 페이지 (통계 및 보상)
+- `app/components/records/TodayProgress.tsx`: 오늘의 진행 현황
+
+---
+
 # 스토리 페이지 태스크 API 연동 기능 명세서
 
 **상태**: ✅ 구현 완료 및 리팩토링 완료 (2025-10-20)
@@ -508,3 +536,59 @@ const handleCreateTodo = async () => {
 7. **훅 최적화**
    - useTasks 내부에서 tasks 의존성 제거 (useCallback 최적화)
    - React Query 또는 SWR 도입 고려
+
+---
+
+## Records 탭 오늘의 진행 보상 데이터 연동 (신규 기능)
+
+**상태**: ✅ 구현 완료 (2025-11-09)
+**구현된 파일**:
+- `app/api/endpoints.ts`: REWARD_ENDPOINTS.SEARCH 추가
+- `app/api/rewards.ts`: searchRewards 함수 (신규 생성)
+- `app/components/records/TodayProgress.tsx`: Props 확장 및 2x2 그리드 UI
+- `app/routes/records.tsx`: 오늘 완료 태스크 필터링 및 보상 데이터 조회 로직
+
+**주요 변경사항**:
+- POST /api/rewards/search API 연동
+- 오늘 완료한 태스크 필터링 로직 (useMemo)
+- 보상 데이터 집계 (경험치, 포인트)
+- TodayProgress 컴포넌트 2x2 그리드로 확장
+
+### 개요
+Records 탭의 "오늘의 진행" 섹션에 POST /api/rewards/search API를 활용하여 오늘 완료한 태스크의 보상 정보를 표시합니다.
+
+### 핵심 요구사항
+1. **오늘 완료한 태스크 조회**: tasks에서 status=DONE이면서 endAt이 오늘인 태스크 필터링
+2. **보상 데이터 조회**: POST /api/rewards/search로 태스크 ID 배열 전송
+3. **데이터 집계**: 완료 태스크 수, 획득 경험치, 획득 포인트 계산
+4. **UI 업데이트**: TodayProgress 컴포넌트를 2x2 그리드로 확장 (스토리, 태스크, 경험치, 포인트)
+
+### API 명세
+```
+POST /api/rewards/search
+{
+  "sourceType": "TASK",
+  "sourceIds": ["task-1", "task-2", "task-3"]
+}
+```
+
+**응답**: `RewardResponse[]` (각 항목에 point, exp 포함)
+
+### 구현 파일
+- `app/api/endpoints.ts`: REWARD_ENDPOINTS.SEARCH 추가
+- `app/api/rewards.ts`: searchRewards 함수 (신규 생성)
+- `app/components/records/TodayProgress.tsx`: Props 확장 (completedTasks, totalExp, totalPoints)
+- `app/routes/records.tsx`: 보상 데이터 조회 및 집계 로직
+
+### 데이터 처리 흐름
+1. Records 페이지 마운트 시 useTasks로 태스크 목록 조회
+2. 오늘 완료한 태스크 필터링 (useMemo 활용)
+3. 태스크 ID 배열로 POST /api/rewards/search 호출
+4. 응답에서 경험치/포인트 합산
+5. TodayProgress에 데이터 전달
+
+### 기술적 고려사항
+- **날짜 비교**: endAt 필드 우선, 없으면 modifiedAt 사용 (YYYY-MM-DD만 비교)
+- **성능 최적화**: 완료 태스크 없으면 API 호출하지 않음, useMemo로 필터링 캐싱
+- **에러 처리**: 실패 시 기본값(0) 표시
+- **디자인**: 2x2 그리드, text-primary/accent/secondary 색상 사용
