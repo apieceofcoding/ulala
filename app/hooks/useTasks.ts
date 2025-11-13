@@ -133,13 +133,19 @@ export function useTasks({
       const originalTask = tasks.find((t) => t.id === id);
       if (!originalTask) return;
 
+      // updateNullFields가 없으면 false로 설정
+      const requestData: UpdateTaskRequest = {
+        ...data,
+        updateNullFields: data.updateNullFields ?? false,
+      };
+
       // 낙관적 업데이트
       setTasks((prev) =>
         prev.map((task) => (task.id === id ? { ...task, ...data } : task))
       );
 
       try {
-        const updatedTask = await updateTask(id, data, accessToken);
+        const updatedTask = await updateTask(id, requestData, accessToken);
         setTasks((prev) =>
           prev.map((task) => (task.id === id ? updatedTask : task))
         );

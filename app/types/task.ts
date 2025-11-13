@@ -9,6 +9,7 @@ export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
   DONE = "DONE",
+  ON_HOLD = "ON_HOLD",
 }
 
 /**
@@ -50,6 +51,7 @@ export interface UpdateTaskRequest {
   startAt?: string;
   endAt?: string;
   dueAt?: string;
+  updateNullFields?: boolean;
 }
 
 /**

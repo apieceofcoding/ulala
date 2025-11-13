@@ -220,6 +220,20 @@ export function TaskKanbanBoard({
           onToggleCollapse={() => onToggleSection(TaskStatus.DONE)}
         />
 
+        {/* 보류 섹션 */}
+        <DroppableSection
+          id={TaskStatus.ON_HOLD}
+          title="보류"
+          tasks={tasks
+            .filter((t) => t.status === TaskStatus.ON_HOLD)
+            .sort((a, b) => a.displayOrder - b.displayOrder)}
+          emptyMessage="보류된 태스크가 없습니다"
+          onToggle={onToggleTask}
+          onClick={onTaskClick}
+          collapsed={collapsedSections[TaskStatus.ON_HOLD]}
+          onToggleCollapse={() => onToggleSection(TaskStatus.ON_HOLD)}
+        />
+
         {/* 전체 통계 */}
         <div className="text-center">
           <p className="caption-text">

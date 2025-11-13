@@ -111,7 +111,7 @@ export async function createTask(
 /**
  * 태스크 수정
  * @param id - Task ID
- * @param request - 수정할 태스크 정보
+ * @param request - 수정할 태스크 정보 (updateNullFields 포함)
  * @param token - 인증 토큰
  * @returns 수정된 Task 정보
  */

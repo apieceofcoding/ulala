@@ -111,13 +111,14 @@ export default function Stories() {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
-    // 순환 방식: TODO → IN_PROGRESS → DONE → TODO
+    // 순환 방식: TODO → IN_PROGRESS → DONE → TODO (ON_HOLD는 드래그로만 이동 가능)
     let newStatus: TaskStatus;
     if (task.status === TaskStatus.TODO) {
       newStatus = TaskStatus.IN_PROGRESS;
     } else if (task.status === TaskStatus.IN_PROGRESS) {
       newStatus = TaskStatus.DONE;
     } else {
+      // DONE 또는 ON_HOLD에서는 TODO로 돌아감
       newStatus = TaskStatus.TODO;
     }
 
@@ -130,7 +131,10 @@ export default function Stories() {
     const newDisplayOrder = maxDisplayOrder + 1;
 
     try {
-      await editTask(id, { status: newStatus, displayOrder: newDisplayOrder });
+      await editTask(id, {
+        status: newStatus,
+        displayOrder: newDisplayOrder,
+      });
 
       // selectedTask가 현재 토글하는 task라면 업데이트
       if (selectedTask && selectedTask.id === id) {
@@ -158,12 +162,37 @@ export default function Stories() {
   const handleSaveTask = async (
     taskId: string,
     title: string,
-    description: string
+    description: string,
+    status: TaskStatus,
+    startAt: string | null,
+    endAt: string | null,
+    dueAt: string | null
   ) => {
     try {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+
+      // 상태가 변경된 경우 displayOrder 재계산
+      let newDisplayOrder = task.displayOrder;
+      if (status !== task.status) {
+        const tasksInNewStatus = tasks.filter((t) => t.status === status);
+        const maxDisplayOrder =
+          tasksInNewStatus.length > 0
+            ? Math.max(...tasksInNewStatus.map((t) => t.displayOrder))
+            : 0;
+        newDisplayOrder = maxDisplayOrder + 1;
+      }
+
+      // TaskDetailModal에서 저장할 때는 updateNullFields=true
       await editTask(taskId, {
         title,
         description: description || undefined,
+        status,
+        displayOrder: newDisplayOrder,
+        startAt: startAt || undefined,
+        endAt: endAt || undefined,
+        dueAt: dueAt || undefined,
+        updateNullFields: true,
       });
 
       // selectedTask를 업데이트하여 모달에 변경된 내용 표시
@@ -172,6 +201,11 @@ export default function Stories() {
           ...selectedTask,
           title,
           description: description || null,
+          status,
+          displayOrder: newDisplayOrder,
+          startAt,
+          endAt,
+          dueAt,
         });
       }
     } catch {
@@ -303,7 +337,9 @@ export default function Stories() {
               }
             } else if (task.displayOrder !== newDisplayOrder) {
               // 다른 task들은 displayOrder만 변경
-              await editTask(task.id, { displayOrder: newDisplayOrder });
+              await editTask(task.id, {
+                displayOrder: newDisplayOrder,
+              });
             }
           }
         } catch {
@@ -334,7 +370,9 @@ export default function Stories() {
 
             // displayOrder가 변경된 경우에만 업데이트
             if (task.displayOrder !== newDisplayOrder) {
-              await editTask(task.id, { displayOrder: newDisplayOrder });
+              await editTask(task.id, {
+                displayOrder: newDisplayOrder,
+              });
             }
           }
 
@@ -415,7 +453,6 @@ export default function Stories() {
           onClose={() => setSelectedTask(null)}
           onSave={handleSaveTask}
           onDelete={handleDeleteTask}
-          onToggleStatus={handleToggleTask}
         />
       )}
     </>
