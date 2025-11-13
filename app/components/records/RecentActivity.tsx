@@ -75,12 +75,14 @@ export function RecentActivity({
   const getStatusText = (status: TaskStatus) => {
     if (status === TaskStatus.DONE) return "완료";
     if (status === TaskStatus.IN_PROGRESS) return "진행중";
+    if (status === TaskStatus.ON_HOLD) return "보류";
     return "대기중";
   };
 
   const getStatusColor = (status: TaskStatus) => {
     if (status === TaskStatus.DONE) return "text-success font-semibold";
     if (status === TaskStatus.IN_PROGRESS) return "text-info font-semibold";
+    if (status === TaskStatus.ON_HOLD) return "text-warning font-semibold";
     return "text-text-secondary dark:text-text-secondary-dark";
   };
 
