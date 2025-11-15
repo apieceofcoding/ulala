@@ -1,4 +1,6 @@
 import { NavLink } from "react-router";
+import { useAuth } from "@/contexts/AuthContext";
+import { HomeCharacter } from "@/components/character/HomeCharacter";
 
 const motivationalQuotes = [
   {
@@ -24,6 +26,7 @@ const motivationalQuotes = [
 ];
 
 export function Home() {
+  const { member } = useAuth();
   const todayQuote =
     motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
 
@@ -31,6 +34,11 @@ export function Home() {
     <main className="container min-h-screen flex items-center justify-center">
       <div className="flex-1 flex flex-col items-center max-w-4xl mx-auto">
         <div className="w-full max-w-sm space-y-6">
+          {/* 로그인한 사용자에게만 캐릭터 표시 */}
+          {member && (
+            <HomeCharacter memberId={member.id} member={member} />
+          )}
+
           <div className="card-default">
             <div className="text-center space-y-4">
               <h2 className="heading-secondary mb-4">오늘의 동기부여</h2>
