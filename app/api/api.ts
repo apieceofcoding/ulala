@@ -5,6 +5,7 @@
  * - 환경 변수 관리
  * - API 클라이언트 함수 (GET, POST, PUT, DELETE)
  * - 인증, 에러 핸들링, 타임아웃 처리
+ * - 자동 토큰 갱신 및 요청 재시도
  */
 
 /**
@@ -28,6 +29,30 @@ export const API_CONFIG = {
 } as const;
 
 /**
+ * 토큰 갱신 콜백 함수 타입
+ */
+type RefreshTokenCallback = () => Promise<string | null>;
+
+/**
+ * 토큰 갱신 콜백 함수 (AuthContext에서 등록)
+ */
+let refreshTokenCallback: RefreshTokenCallback | null = null;
+
+/**
+ * 토큰 갱신 중 상태 관리
+ * 여러 요청이 동시에 401을 받을 때 중복 갱신을 방지
+ */
+let refreshTokenPromise: Promise<string | null> | null = null;
+
+/**
+ * 토큰 갱신 콜백 함수 등록
+ * @param callback - 토큰 갱신 콜백 함수
+ */
+export function setRefreshTokenCallback(callback: RefreshTokenCallback) {
+  refreshTokenCallback = callback;
+}
+
+/**
  * API 요청 옵션 인터페이스
  */
 export interface ApiRequestOptions extends RequestInit {
@@ -35,6 +60,8 @@ export interface ApiRequestOptions extends RequestInit {
   token?: string;
   /** 타임아웃 (밀리초) */
   timeout?: number;
+  /** 재시도 여부 (내부 사용, 무한 루프 방지) */
+  _isRetry?: boolean;
 }
 
 /**
@@ -70,6 +97,38 @@ function buildUrl(endpoint: string): string {
 }
 
 /**
+ * 토큰 갱신 함수
+ * 중복 갱신을 방지하기 위해 Promise를 캐싱
+ * @returns 새로운 액세스 토큰 또는 null
+ */
+async function refreshToken(): Promise<string | null> {
+  // 이미 갱신 중이면 기존 Promise 반환
+  if (refreshTokenPromise) {
+    return refreshTokenPromise;
+  }
+
+  // 토큰 갱신 콜백이 등록되지 않았으면 null 반환
+  if (!refreshTokenCallback) {
+    return null;
+  }
+
+  // 새로운 갱신 Promise 생성 및 캐싱
+  refreshTokenPromise = refreshTokenCallback()
+    .then((newToken) => {
+      return newToken;
+    })
+    .catch(() => {
+      return null;
+    })
+    .finally(() => {
+      // 갱신 완료 후 Promise 캐시 초기화
+      refreshTokenPromise = null;
+    });
+
+  return refreshTokenPromise;
+}
+
+/**
  * 공통 API 요청 함수
  * @param endpoint - API 엔드포인트 경로
  * @param options - 요청 옵션
@@ -79,7 +138,7 @@ async function request(
   endpoint: string,
   options: ApiRequestOptions = {},
 ): Promise<Response> {
-  const { token, timeout = 30000, headers = {}, ...restOptions } = options;
+  const { token, timeout = 30000, headers = {}, _isRetry = false, ...restOptions } = options;
 
   // 헤더 설정
   const requestHeaders: Record<string, string> = {
@@ -107,6 +166,21 @@ async function request(
     });
 
     clearTimeout(timeoutId);
+
+    // 401 Unauthorized 에러 처리
+    if (response.status === 401 && !_isRetry) {
+      // 토큰 갱신 시도
+      const newToken = await refreshToken();
+
+      if (newToken) {
+        // 새로운 토큰으로 재시도 (_isRetry 플래그로 무한 루프 방지)
+        return request(endpoint, {
+          ...options,
+          token: newToken,
+          _isRetry: true,
+        });
+      }
+    }
 
     return response;
   } catch (error) {
