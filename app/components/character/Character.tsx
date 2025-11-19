@@ -32,7 +32,7 @@ export function Character({
           shirt: "#708090",
           pants: "#4A4A4A",
           shoes: "#2C3E50",
-          hairDark: "#C8C8C8"
+          hairDark: "#C8C8C8",
         };
       case "WARREN_BUFFETT":
         // 워렌 버핏 - 투자의 귀재 (클래식 정장 톤)
@@ -42,7 +42,7 @@ export function Character({
           shirt: "#FFFFFF",
           pants: "#2C3E50",
           shoes: "#1A1A1A",
-          hairDark: "#A0A0A0"
+          hairDark: "#A0A0A0",
         };
       case "MICHAEL_JORDAN":
         // 마이클 조던 - 농구 레전드 (빨강/검정 톤)
@@ -52,7 +52,7 @@ export function Character({
           shirt: "#C8102E",
           pants: "#000000",
           shoes: "#C8102E",
-          hairDark: "#0A0A0A"
+          hairDark: "#0A0A0A",
         };
       case "ELON_MUSK":
         // 일론 머스크 - 테크 CEO 스타일 (검은 티셔츠)
@@ -62,7 +62,7 @@ export function Character({
           shirt: "#1A1A1A",
           pants: "#2C2C2C",
           shoes: "#1A1A1A",
-          hairDark: "#2A1A0A"
+          hairDark: "#2A1A0A",
         };
       default:
         return {
@@ -71,7 +71,7 @@ export function Character({
           shirt: "#708090",
           pants: "#4A4A4A",
           shoes: "#2C3E50",
-          hairDark: "#1A1A1A"
+          hairDark: "#1A1A1A",
         };
     }
   };
@@ -218,11 +218,27 @@ export function Character({
       <>
         {/* 안경테 - 둥근 사각형 스타일 */}
         {/* 왼쪽 렌즈 */}
-        <rect x="6" y="12" width="8" height="6" fill="none" stroke="#3D3D3D" strokeWidth="1" />
+        <rect
+          x="6"
+          y="12"
+          width="8"
+          height="6"
+          fill="none"
+          stroke="#3D3D3D"
+          strokeWidth="1"
+        />
         <rect x="7" y="13" width="6" height="4" fill="#E8F4FF" opacity="0.3" />
 
         {/* 오른쪽 렌즈 */}
-        <rect x="18" y="12" width="8" height="6" fill="none" stroke="#3D3D3D" strokeWidth="1" />
+        <rect
+          x="18"
+          y="12"
+          width="8"
+          height="6"
+          fill="none"
+          stroke="#3D3D3D"
+          strokeWidth="1"
+        />
         <rect x="19" y="13" width="6" height="4" fill="#E8F4FF" opacity="0.3" />
 
         {/* 코걸이 */}
@@ -360,7 +376,14 @@ export function Character({
             <rect x="9" y="15" width="1" height="2" fill="#FFF" />
             <rect x="13" y="15" width="1" height="1" fill="#FFF" />
             {/* 작은 반짝임 */}
-            <rect x="11" y="18" width="1" height="1" fill="#FFF" opacity="0.7" />
+            <rect
+              x="11"
+              y="18"
+              width="1"
+              height="1"
+              fill="#FFF"
+              opacity="0.7"
+            />
 
             {/* 오른쪽 눈 (앞쪽) - 동그란 형태 */}
             <rect x="19" y="14" width="5" height="6" fill="#000" />
@@ -370,7 +393,14 @@ export function Character({
             <rect x="19" y="15" width="1" height="2" fill="#FFF" />
             <rect x="23" y="15" width="1" height="1" fill="#FFF" />
             {/* 작은 반짝임 */}
-            <rect x="21" y="18" width="1" height="1" fill="#FFF" opacity="0.7" />
+            <rect
+              x="21"
+              y="18"
+              width="1"
+              height="1"
+              fill="#FFF"
+              opacity="0.7"
+            />
           </>
         ) : (
           <>
@@ -382,7 +412,14 @@ export function Character({
             <rect x="18" y="15" width="1" height="2" fill="#FFF" />
             <rect x="22" y="15" width="1" height="1" fill="#FFF" />
             {/* 작은 반짝임 */}
-            <rect x="20" y="18" width="1" height="1" fill="#FFF" opacity="0.7" />
+            <rect
+              x="20"
+              y="18"
+              width="1"
+              height="1"
+              fill="#FFF"
+              opacity="0.7"
+            />
 
             {/* 왼쪽 눈 (앞쪽) - 동그란 형태 */}
             <rect x="8" y="14" width="5" height="6" fill="#000" />
@@ -392,7 +429,14 @@ export function Character({
             <rect x="8" y="15" width="1" height="2" fill="#FFF" />
             <rect x="12" y="15" width="1" height="1" fill="#FFF" />
             {/* 작은 반짝임 */}
-            <rect x="10" y="18" width="1" height="1" fill="#FFF" opacity="0.7" />
+            <rect
+              x="10"
+              y="18"
+              width="1"
+              height="1"
+              fill="#FFF"
+              opacity="0.7"
+            />
           </>
         )}
 
@@ -441,6 +485,67 @@ export function Character({
               <rect x="18" y="26" width="4" height="3" fill={colors.skin} />
             </g>
           </>
+        ) : roleModel === "MICHAEL_JORDAN" && animationState === "walk" ? (
+          // 마이클 조던 드리블 시 - 농구공 쪽 손이 드리블
+          isLookingRight ? (
+            <>
+              {/* 왼쪽 팔 (뒤쪽) - 일반 걷기 */}
+              <g
+                opacity="0.85"
+                style={{
+                  transformOrigin: "9px 29px",
+                  animation: "arm-left 0.4s ease-in-out infinite",
+                }}
+              >
+                <rect x="7" y="29" width="3" height="5" fill={colors.shirt} />
+                <rect x="6" y="34" width="4" height="3" fill={colors.skin} />
+              </g>
+              {/* 오른쪽 팔 (앞쪽) - 드리블 터치 */}
+              <g>
+                <rect x="21" y="29" width="3" height="5" fill={colors.shirt} />
+                {/* 손 - 드리블 터치 애니메이션 */}
+                <rect
+                  x="20"
+                  y="34"
+                  width="4"
+                  height="3"
+                  fill={colors.skin}
+                  style={{
+                    animation: "hand-dribble 0.4s ease-in-out infinite",
+                  }}
+                />
+              </g>
+            </>
+          ) : (
+            <>
+              {/* 오른쪽 팔 (뒤쪽) - 일반 걷기 */}
+              <g
+                opacity="0.85"
+                style={{
+                  transformOrigin: "23px 29px",
+                  animation: "arm-right 0.4s ease-in-out infinite",
+                }}
+              >
+                <rect x="21" y="29" width="3" height="5" fill={colors.shirt} />
+                <rect x="20" y="34" width="4" height="3" fill={colors.skin} />
+              </g>
+              {/* 왼쪽 팔 (앞쪽) - 드리블 터치 */}
+              <g>
+                <rect x="7" y="29" width="3" height="5" fill={colors.shirt} />
+                {/* 손 - 드리블 터치 애니메이션 */}
+                <rect
+                  x="6"
+                  y="34"
+                  width="4"
+                  height="3"
+                  fill={colors.skin}
+                  style={{
+                    animation: "hand-dribble 0.4s ease-in-out infinite",
+                  }}
+                />
+              </g>
+            </>
+          )
         ) : isLookingRight ? (
           <>
             {/* 왼쪽 팔 (뒤쪽, 살짝 어둡게) */}
@@ -448,7 +553,9 @@ export function Character({
               opacity="0.85"
               style={{
                 transformOrigin: "9px 29px",
-                animation: walkFrame ? "arm-left 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "arm-left 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="7" y="29" width="3" height="5" fill={colors.shirt} />
@@ -459,7 +566,9 @@ export function Character({
             <g
               style={{
                 transformOrigin: "23px 29px",
-                animation: walkFrame ? "arm-right 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "arm-right 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="21" y="29" width="3" height="5" fill={colors.shirt} />
@@ -474,7 +583,9 @@ export function Character({
               opacity="0.85"
               style={{
                 transformOrigin: "23px 29px",
-                animation: walkFrame ? "arm-right 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "arm-right 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="21" y="29" width="3" height="5" fill={colors.shirt} />
@@ -485,7 +596,9 @@ export function Character({
             <g
               style={{
                 transformOrigin: "9px 29px",
-                animation: walkFrame ? "arm-left 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "arm-left 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="7" y="29" width="3" height="5" fill={colors.shirt} />
@@ -506,7 +619,9 @@ export function Character({
               opacity="0.85"
               style={{
                 transformOrigin: "13px 36px",
-                animation: walkFrame ? "leg-left 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "leg-left 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="11" y="36" width="4" height="8" fill={colors.skin} />
@@ -516,7 +631,9 @@ export function Character({
             <g
               style={{
                 transformOrigin: "19px 36px",
-                animation: walkFrame ? "leg-right 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "leg-right 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="17" y="36" width="4" height="8" fill={colors.skin} />
@@ -530,7 +647,9 @@ export function Character({
               opacity="0.85"
               style={{
                 transformOrigin: "19px 36px",
-                animation: walkFrame ? "leg-right 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "leg-right 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="17" y="36" width="4" height="8" fill={colors.skin} />
@@ -540,7 +659,9 @@ export function Character({
             <g
               style={{
                 transformOrigin: "13px 36px",
-                animation: walkFrame ? "leg-left 0.4s ease-in-out infinite" : "none",
+                animation: walkFrame
+                  ? "leg-left 0.4s ease-in-out infinite"
+                  : "none",
               }}
             >
               <rect x="11" y="36" width="4" height="8" fill={colors.skin} />
@@ -647,7 +768,17 @@ export function Character({
             transform: translateY(0);
           }
           50% {
-            transform: translateY(12px);
+            transform: translateY(8px);
+          }
+        }
+
+        /* 드리블 터치 애니메이션 - 손만 아래로 내려가서 공 터치 */
+        @keyframes hand-dribble {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(1px);
           }
         }
 

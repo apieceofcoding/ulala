@@ -23,11 +23,11 @@ interface CharacterMapProps {
 const GAME_CONFIG: GameConfig = {
   mapWidth: 360,
   mapHeight: 280,
-  characterSize: 48,
+  characterSize: 96,
   gravity: 0.5,
   moveSpeed: 4,
   jumpSpeed: -12,
-  groundY: 216, // mapHeight - characterSize - 16 (바닥 여백)
+  groundY: 168, // mapHeight - characterSize - 16 (바닥 여백)
 };
 
 // 현재 계절 가져오기 (월 기준)
