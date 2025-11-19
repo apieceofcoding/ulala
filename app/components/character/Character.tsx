@@ -256,6 +256,55 @@ export function Character({
     );
   };
 
+  // 마이클 조던 전용 농구공 렌더링 (드리블/점프)
+  const renderBasketball = (isLookingRight: boolean) => {
+    if (roleModel !== "MICHAEL_JORDAN") return null;
+    if (animationState !== "walk" && animationState !== "jump") return null;
+
+    // 점프할 때는 두 손으로 잡기 (상체 중간)
+    if (animationState === "jump") {
+      return (
+        <g>
+          {/* 농구공 - 상체 중간 */}
+          <circle cx="16" cy="28" r="4" fill="#FF6B00" />
+          {/* 농구공 줄무늬 */}
+          <path d="M16 24 L16 32" stroke="#000" strokeWidth="0.5" />
+          <path d="M12 28 L20 28" stroke="#000" strokeWidth="0.5" />
+          {/* 농구공 하이라이트 */}
+          <circle cx="14" cy="26" r="1" fill="#FFA500" opacity="0.6" />
+        </g>
+      );
+    }
+
+    // 드리블할 때
+    const ballX = isLookingRight ? 22 : 2;
+
+    return (
+      <g
+        style={{
+          transformOrigin: `${ballX + 4}px 40px`,
+          animation: "basketball-dribble 0.4s ease-in-out infinite",
+        }}
+      >
+        {/* 농구공 - 상체 높이(y=30)에서 시작하여 바닥(y=42)까지 바운스 */}
+        <circle cx={ballX + 4} cy="30" r="4" fill="#FF6B00" />
+        {/* 농구공 줄무늬 */}
+        <path
+          d={`M${ballX + 4} 26 L${ballX + 4} 34`}
+          stroke="#000"
+          strokeWidth="0.5"
+        />
+        <path
+          d={`M${ballX} 30 L${ballX + 8} 30`}
+          stroke="#000"
+          strokeWidth="0.5"
+        />
+        {/* 농구공 하이라이트 */}
+        <circle cx={ballX + 2} cy="28" r="1" fill="#FFA500" opacity="0.6" />
+      </g>
+    );
+  };
+
   // 방향에 따른 측면 뷰 렌더링 (45도 각도)
   const renderSideView = () => {
     // direction이 "right"면 오른쪽을 보는 모습, "left"면 왼쪽을 보는 모습
@@ -378,7 +427,21 @@ export function Character({
         <rect x="12" y="29" width="8" height="2" fill="#000" opacity="0.1" />
 
         {/* 팔 - 양쪽 모두 보이지만 원근감 있게, 큰 손 */}
-        {isLookingRight ? (
+        {/* 마이클 조던 점프 시 두 손으로 농구공 잡기 */}
+        {roleModel === "MICHAEL_JORDAN" && animationState === "jump" ? (
+          <>
+            {/* 왼쪽 팔 - 농구공 왼쪽으로 */}
+            <g opacity="0.85">
+              <rect x="9" y="26" width="3" height="4" fill={colors.shirt} />
+              <rect x="10" y="26" width="4" height="3" fill={colors.skin} />
+            </g>
+            {/* 오른쪽 팔 - 농구공 오른쪽으로 */}
+            <g>
+              <rect x="20" y="26" width="3" height="4" fill={colors.shirt} />
+              <rect x="18" y="26" width="4" height="3" fill={colors.skin} />
+            </g>
+          </>
+        ) : isLookingRight ? (
           <>
             {/* 왼쪽 팔 (뒤쪽, 살짝 어둡게) */}
             <g
@@ -485,6 +548,9 @@ export function Character({
             </g>
           </>
         )}
+
+        {/* 농구공 - 조던 전용 */}
+        {renderBasketball(isLookingRight)}
       </svg>
     );
   };
@@ -527,13 +593,13 @@ export function Character({
 
         @keyframes character-jump {
           0% {
-            transform: scale(1) translateY(0);
+            transform: translateY(0);
           }
           50% {
-            transform: scale(1.05) translateY(-2px);
+            transform: translateY(-4px);
           }
           100% {
-            transform: scale(1) translateY(0);
+            transform: translateY(0);
           }
         }
 
@@ -572,6 +638,16 @@ export function Character({
           }
           50% {
             transform: rotate(-5deg) translateY(0);
+          }
+        }
+
+        /* 농구공 드리블 애니메이션 */
+        @keyframes basketball-dribble {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(12px);
           }
         }
 
