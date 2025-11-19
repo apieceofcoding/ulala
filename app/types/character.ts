@@ -3,37 +3,65 @@
  */
 
 /**
- * 캐릭터 스타일 타입 (인물 기반)
+ * 롤모델 타입
  */
-export type CharacterStyle = "einstein" | "buffett" | "jordan" | "musk";
+export type RoleModel = "EINSTEIN" | "WARREN_BUFFETT" | "MICHAEL_JORDAN" | "ELON_MUSK";
+
+/**
+ * 캐릭터 API 응답 인터페이스 (백엔드 응답)
+ */
+export interface CharacterResponse {
+  /** 캐릭터 ID */
+  id: number;
+  /** 롤모델 */
+  roleModel: RoleModel;
+  /** 롤모델 표시 이름 */
+  roleModelDisplayName: string;
+  /** 회원 ID */
+  memberId: string;
+}
 
 /**
  * 캐릭터 데이터 인터페이스
  */
 export interface Character {
   /** 캐릭터 ID */
-  id: string;
+  id: number;
   /** 회원 ID */
   memberId: string;
-  /** 캐릭터 이름 */
-  name: string;
-  /** 캐릭터 스타일 */
-  style: CharacterStyle;
-  /** 레벨 */
-  level: number;
-  /** 생성일시 */
-  createdAt: string;
+  /** 롤모델 */
+  roleModel: RoleModel;
+  /** 롤모델 표시 이름 */
+  displayName: string;
 }
 
 /**
  * 캐릭터 생성 요청 데이터
  */
 export interface CreateCharacterRequest {
-  /** 캐릭터 이름 (선택사항) */
-  name?: string;
-  /** 캐릭터 스타일 (선택사항, 기본값은 랜덤) */
-  style?: CharacterStyle;
+  /** 롤모델 */
+  roleModel: RoleModel;
 }
+
+/**
+ * 캐릭터 수정 요청 데이터
+ */
+export interface UpdateCharacterRequest {
+  /** 롤모델 */
+  roleModel: RoleModel;
+}
+
+/**
+ * CharacterResponse를 Character로 변환
+ */
+export const toCharacter = (response: CharacterResponse): Character => {
+  return {
+    id: response.id,
+    memberId: response.memberId,
+    roleModel: response.roleModel,
+    displayName: response.roleModelDisplayName,
+  };
+};
 
 /**
  * 게임 애니메이션 상태

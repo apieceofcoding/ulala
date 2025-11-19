@@ -1,8 +1,8 @@
-import type { CharacterStyle, AnimationState, Direction } from "@/types/character";
+import type { RoleModel, AnimationState, Direction } from "@/types/character";
 
 interface CharacterProps {
-  /** 캐릭터 스타일 */
-  style: CharacterStyle;
+  /** 롤모델 */
+  roleModel: RoleModel;
   /** 애니메이션 상태 */
   animationState: AnimationState;
   /** 바라보는 방향 */
@@ -16,25 +16,25 @@ interface CharacterProps {
  * 메이플스토리 픽셀 아트 스타일의 귀여운 울랄라 캐릭터를 렌더링하고 애니메이션을 표시합니다.
  */
 export function Character({
-  style,
+  roleModel,
   animationState,
   direction,
   size,
 }: CharacterProps) {
   // 인물별 색상 (머리는 모두 검은색)
-  const getCharacterColors = (characterStyle: CharacterStyle) => {
-    switch (characterStyle) {
-      case "einstein":
-        // 아인슈타인 - 과학자 스타일 (회색 톤)
+  const getCharacterColors = (model: RoleModel) => {
+    switch (model) {
+      case "EINSTEIN":
+        // 아인슈타인 - 과학자 스타일 (흰/회색 머리)
         return {
           skin: "#FFDAB5",
-          hair: "#2C2C2C",
+          hair: "#E8E8E8",
           shirt: "#708090",
           pants: "#4A4A4A",
           shoes: "#2C3E50",
-          hairDark: "#1A1A1A"
+          hairDark: "#C8C8C8"
         };
-      case "buffett":
+      case "WARREN_BUFFETT":
         // 워렌 버핏 - 투자의 귀재 (클래식 정장 톤)
         return {
           skin: "#FFDAB5",
@@ -44,7 +44,7 @@ export function Character({
           shoes: "#1A1A1A",
           hairDark: "#A0A0A0"
         };
-      case "jordan":
+      case "MICHAEL_JORDAN":
         // 마이클 조던 - 농구 레전드 (빨강/검정 톤)
         return {
           skin: "#8B6F47",
@@ -54,15 +54,15 @@ export function Character({
           shoes: "#C8102E",
           hairDark: "#0A0A0A"
         };
-      case "musk":
-        // 일론 머스크 - 미래지향적 기업가 (회색/검정 톤)
+      case "ELON_MUSK":
+        // 일론 머스크 - 테크 CEO 스타일 (검은 티셔츠)
         return {
           skin: "#FFDAB5",
-          hair: "#2C2C2C",
-          shirt: "#2F4F4F",
-          pants: "#1C1C1C",
-          shoes: "#000000",
-          hairDark: "#1A1A1A"
+          hair: "#3D2817",
+          shirt: "#1A1A1A",
+          pants: "#2C2C2C",
+          shoes: "#1A1A1A",
+          hairDark: "#2A1A0A"
         };
       default:
         return {
@@ -76,90 +76,109 @@ export function Character({
     }
   };
 
-  const colors = getCharacterColors(style);
+  const colors = getCharacterColors(roleModel);
 
   // 걷기 애니메이션 프레임
   const walkFrame = animationState === "walk" ? "walk-cycle" : "";
 
   // 인물별 헤어스타일 렌더링
   const renderHairStyle = (isLookingRight: boolean) => {
-    switch (style) {
-      case "einstein":
-        // 아인슈타인: 부스스한 곱슬머리
+    switch (roleModel) {
+      case "EINSTEIN":
+        // 아인슈타인: 매우 풍성하고 부스스한 흰 곱슬머리
+        return (
+          <>
+            {/* 기본 머리 - 더 풍성하게 */}
+            <rect x="3" y="1" width="26" height="16" fill={colors.hair} />
+            <rect x="2" y="3" width="2" height="14" fill={colors.hair} />
+            <rect x="28" y="3" width="2" height="14" fill={colors.hair} />
+
+            {/* 매우 곱슬곱슬한 텍스처 - 위로 튀어나온 부분 */}
+            <rect x="4" y="-1" width="4" height="4" fill={colors.hair} />
+            <rect x="9" y="-2" width="3" height="4" fill={colors.hair} />
+            <rect x="13" y="-1" width="5" height="4" fill={colors.hair} />
+            <rect x="19" y="-2" width="3" height="4" fill={colors.hair} />
+            <rect x="23" y="-1" width="4" height="4" fill={colors.hair} />
+
+            {/* 양쪽으로 크게 튀어나온 머리 - 아인슈타인 특유의 헤어스타일 */}
+            <rect x="0" y="4" width="4" height="6" fill={colors.hair} />
+            <rect x="1" y="3" width="3" height="2" fill={colors.hair} />
+            <rect x="1" y="10" width="3" height="3" fill={colors.hair} />
+            <rect x="28" y="4" width="4" height="6" fill={colors.hair} />
+            <rect x="28" y="3" width="3" height="2" fill={colors.hair} />
+            <rect x="28" y="10" width="3" height="3" fill={colors.hair} />
+
+            {/* 그림자 */}
+            <rect x="5" y="2" width="6" height="6" fill={colors.hairDark} />
+            <rect x="19" y="2" width="6" height="6" fill={colors.hairDark} />
+          </>
+        );
+
+      case "WARREN_BUFFETT":
+        // 워렌 버핏: 이마가 넓고 옆머리만 있는 대머리 스타일
+        return (
+          <>
+            {/* 대머리 - 이마가 넓고 옆머리만 있음 */}
+            {/* 왼쪽 옆머리 */}
+            <rect x="3" y="8" width="4" height="10" fill={colors.hair} />
+            <rect x="4" y="7" width="3" height="2" fill={colors.hair} />
+            <rect x="5" y="6" width="2" height="2" fill={colors.hair} />
+
+            {/* 오른쪽 옆머리 */}
+            <rect x="25" y="8" width="4" height="10" fill={colors.hair} />
+            <rect x="25" y="7" width="3" height="2" fill={colors.hair} />
+            <rect x="25" y="6" width="2" height="2" fill={colors.hair} />
+
+            {/* 뒷머리 (살짝만) */}
+            <rect x="7" y="2" width="18" height="3" fill={colors.hair} />
+            <rect x="5" y="4" width="22" height="3" fill={colors.hair} />
+
+            {/* 그림자 */}
+            <rect x="4" y="9" width="3" height="4" fill={colors.hairDark} />
+            <rect x="25" y="9" width="3" height="4" fill={colors.hairDark} />
+          </>
+        );
+
+      case "MICHAEL_JORDAN":
+        // 마이클 조던: 거의 대머리 (스킨헤드)
+        return (
+          <>
+            {/* 거의 대머리 - 아주 얇은 머리카락만 */}
+            <rect x="7" y="4" width="18" height="8" fill={colors.hair} />
+            <rect x="6" y="6" width="20" height="6" fill={colors.hair} />
+            <rect x="8" y="3" width="16" height="2" fill={colors.hair} />
+
+            {/* 그림자 - 머리 윤곽 강조 */}
+            <rect x="8" y="4" width="5" height="4" fill={colors.hairDark} />
+            <rect x="19" y="4" width="5" height="4" fill={colors.hairDark} />
+
+            {/* 귀걸이 - 조던의 상징 (왼쪽 귀) */}
+            <rect x="3" y="16" width="2" height="2" fill="#FFD700" />
+            <rect x="4" y="17" width="1" height="2" fill="#FFD700" />
+          </>
+        );
+
+      case "ELON_MUSK":
+        // 일론 머스크: 자연스럽게 앞으로 내린 헤어스타일
         return (
           <>
             {/* 기본 머리 */}
-            <rect x="4" y="1" width="24" height="16" fill={colors.hair} />
-            <rect x="3" y="3" width="2" height="14" fill={colors.hair} />
-            <rect x="27" y="3" width="2" height="14" fill={colors.hair} />
-
-            {/* 곱슬곱슬한 텍스처 */}
-            <rect x="5" y="0" width="3" height="3" fill={colors.hair} />
-            <rect x="9" y="0" width="3" height="2" fill={colors.hair} />
-            <rect x="13" y="0" width="4" height="3" fill={colors.hair} />
-            <rect x="18" y="0" width="3" height="2" fill={colors.hair} />
-            <rect x="22" y="0" width="4" height="3" fill={colors.hair} />
-
-            {/* 양쪽으로 튀어나온 머리 */}
-            <rect x="2" y="5" width="2" height="4" fill={colors.hair} />
-            <rect x="28" y="5" width="2" height="4" fill={colors.hair} />
-
-            {/* 그림자 */}
-            <rect x="5" y="2" width="5" height="5" fill={colors.hairDark} />
-            <rect x="20" y="2" width="5" height="5" fill={colors.hairDark} />
-          </>
-        );
-
-      case "buffett":
-        // 워렌 버핏: 짧고 단정한 은발 (나이든 스타일)
-        return (
-          <>
-            {/* 기본 머리 - 짧고 정돈된 */}
             <rect x="5" y="2" width="22" height="12" fill={colors.hair} />
             <rect x="4" y="4" width="2" height="10" fill={colors.hair} />
             <rect x="26" y="4" width="2" height="10" fill={colors.hair} />
+
+            {/* 윗머리 - 자연스러운 볼륨 */}
             <rect x="6" y="1" width="20" height="2" fill={colors.hair} />
+            <rect x="8" y="0" width="16" height="2" fill={colors.hair} />
 
-            {/* 옆으로 넘긴 단정한 스타일 */}
-            <rect x="7" y="4" width="14" height="2" fill={colors.hair} />
+            {/* 앞머리 - 이마 쪽으로 자연스럽게 내려옴 */}
+            <rect x="7" y="4" width="10" height="3" fill={colors.hair} />
+            <rect x="8" y="6" width="7" height="2" fill={colors.hair} />
+            <rect x="9" y="7" width="4" height="1" fill={colors.hair} />
 
-            {/* 그림자 (은발에 맞게 밝게) */}
+            {/* 그림자 */}
             <rect x="6" y="2" width="5" height="4" fill={colors.hairDark} />
             <rect x="21" y="2" width="5" height="4" fill={colors.hairDark} />
-          </>
-        );
-
-      case "jordan":
-        // 마이클 조던: 스포티한 짧은 머리 (대머리 스타일)
-        return (
-          <>
-            {/* 매우 짧은 머리 (대머리에 가까운) */}
-            <rect x="6" y="3" width="20" height="11" fill={colors.hair} />
-            <rect x="5" y="5" width="22" height="9" fill={colors.hair} />
-            <rect x="7" y="2" width="18" height="2" fill={colors.hair} />
-
-            {/* 그림자 (더 강하게) */}
-            <rect x="7" y="3" width="5" height="5" fill={colors.hairDark} />
-            <rect x="20" y="3" width="5" height="5" fill={colors.hairDark} />
-          </>
-        );
-
-      case "musk":
-        // 일론 머스크: 짧고 단정한 현대적 헤어
-        return (
-          <>
-            {/* 기본 머리 - 짧은 스타일 */}
-            <rect x="5" y="2" width="22" height="12" fill={colors.hair} />
-            <rect x="4" y="4" width="2" height="10" fill={colors.hair} />
-            <rect x="26" y="4" width="2" height="10" fill={colors.hair} />
-            <rect x="6" y="1" width="20" height="2" fill={colors.hair} />
-
-            {/* 약간 앞으로 넘긴 스타일 */}
-            <rect x="7" y="5" width="12" height="2" fill={colors.hair} />
-
-            {/* 그림자 */}
-            <rect x="6" y="2" width="5" height="5" fill={colors.hairDark} />
-            <rect x="21" y="2" width="5" height="5" fill={colors.hairDark} />
           </>
         );
 
@@ -177,20 +196,62 @@ export function Character({
     }
   };
 
-  // 아인슈타인 전용 콧수염 렌더링
-  const renderMustache = () => {
-    if (style !== "einstein") return null;
+  // 마이클 조던 전용 염소수염 렌더링
+  const renderGoatee = () => {
+    if (roleModel !== "MICHAEL_JORDAN") return null;
 
     return (
       <>
-        {/* 콧수염 - 아인슈타인 스타일 */}
-        <rect x="10" y="20" width="4" height="2" fill="#8B8B8B" />
-        <rect x="18" y="20" width="4" height="2" fill="#8B8B8B" />
-        <rect x="9" y="21" width="2" height="2" fill="#8B8B8B" />
-        <rect x="21" y="21" width="2" height="2" fill="#8B8B8B" />
+        {/* 염소수염 - 턱 주변 */}
+        <rect x="13" y="23" width="6" height="2" fill="#1A1A1A" />
+        <rect x="14" y="24" width="4" height="2" fill="#1A1A1A" />
+        <rect x="15" y="25" width="2" height="1" fill="#1A1A1A" />
+      </>
+    );
+  };
+
+  // 워렌 버핏 전용 안경 렌더링
+  const renderGlasses = () => {
+    if (roleModel !== "WARREN_BUFFETT") return null;
+
+    return (
+      <>
+        {/* 안경테 - 둥근 사각형 스타일 */}
+        {/* 왼쪽 렌즈 */}
+        <rect x="6" y="12" width="8" height="6" fill="none" stroke="#3D3D3D" strokeWidth="1" />
+        <rect x="7" y="13" width="6" height="4" fill="#E8F4FF" opacity="0.3" />
+
+        {/* 오른쪽 렌즈 */}
+        <rect x="18" y="12" width="8" height="6" fill="none" stroke="#3D3D3D" strokeWidth="1" />
+        <rect x="19" y="13" width="6" height="4" fill="#E8F4FF" opacity="0.3" />
+
+        {/* 코걸이 */}
+        <rect x="14" y="14" width="4" height="1" fill="#3D3D3D" />
+
+        {/* 안경다리 */}
+        <rect x="4" y="13" width="2" height="1" fill="#3D3D3D" />
+        <rect x="26" y="13" width="2" height="1" fill="#3D3D3D" />
+      </>
+    );
+  };
+
+  // 아인슈타인 전용 콧수염 렌더링
+  const renderMustache = () => {
+    if (roleModel !== "EINSTEIN") return null;
+
+    return (
+      <>
+        {/* 콧수염 - 아인슈타인 특유의 큰 콧수염 */}
+        <rect x="8" y="19" width="6" height="3" fill="#D8D8D8" />
+        <rect x="18" y="19" width="6" height="3" fill="#D8D8D8" />
+        <rect x="7" y="20" width="3" height="3" fill="#D8D8D8" />
+        <rect x="22" y="20" width="3" height="3" fill="#D8D8D8" />
+        {/* 콧수염 그림자 */}
+        <rect x="9" y="21" width="5" height="1" fill="#B8B8B8" />
+        <rect x="18" y="21" width="5" height="1" fill="#B8B8B8" />
         {/* 콧수염 하이라이트 */}
-        <rect x="10" y="20" width="2" height="1" fill="#B0B0B0" />
-        <rect x="18" y="20" width="2" height="1" fill="#B0B0B0" />
+        <rect x="9" y="19" width="3" height="1" fill="#F0F0F0" />
+        <rect x="19" y="19" width="3" height="1" fill="#F0F0F0" />
       </>
     );
   };
@@ -286,8 +347,14 @@ export function Character({
           </>
         )}
 
+        {/* 안경 - 버핏 전용 */}
+        {renderGlasses()}
+
         {/* 콧수염 - 아인슈타인 전용 */}
         {renderMustache()}
+
+        {/* 염소수염 - 조던 전용 */}
+        {renderGoatee()}
 
         {/* 입 - 45도 측면 */}
         <rect x="13" y="22" width="6" height="2" fill="#000" />

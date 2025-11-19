@@ -71,10 +71,16 @@ export const REWARD_ENDPOINTS = {
  * Character 관련 엔드포인트
  */
 export const CHARACTER_ENDPOINTS = {
-  /** 캐릭터 조회 */
-  GET: (memberId: string) => `/api/members/${memberId}/character`,
+  /** 내 캐릭터 조회 */
+  ME: "/api/characters/me",
   /** 캐릭터 생성 */
-  CREATE: (memberId: string) => `/api/members/${memberId}/character`,
+  CREATE: "/api/characters",
+  /** 캐릭터 조회 */
+  GET: (id: number) => `/api/characters/${id}`,
+  /** 캐릭터 수정 */
+  UPDATE: (id: number) => `/api/characters/${id}`,
+  /** 캐릭터 삭제 */
+  DELETE: (id: number) => `/api/characters/${id}`,
 } as const;
 
 /**

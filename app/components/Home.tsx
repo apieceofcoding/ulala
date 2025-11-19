@@ -33,11 +33,9 @@ export function Home() {
   return (
     <main className="container min-h-screen flex items-center justify-center">
       <div className="flex-1 flex flex-col items-center max-w-4xl mx-auto">
-        <div className="w-full max-w-sm space-y-6">
-          {/* 로그인한 사용자에게만 캐릭터 표시 */}
-          {member && (
-            <HomeCharacter memberId={member.id} member={member} />
-          )}
+        <div className="w-full max-w-4xl space-y-6">
+          {/* 캐릭터 표시 (로그인/비로그인 모두) */}
+          <HomeCharacter member={member} />
 
           <div className="card-default">
             <div className="text-center space-y-4">
